@@ -1,0 +1,16 @@
+{
+
+    "type": "project",
+
+    "require": {
+        "brixlab/coder": "dev-main"
+    },
+
+    "minimum-stability": "dev",
+    "config": {
+        "preferred-install": "source",
+        "allow-plugins": {
+            "php-http/discovery": false
+        }
+    }
+}
