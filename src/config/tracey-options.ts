@@ -21,5 +21,8 @@ export interface TraceyOptions {
       throttleTime?: number;
       disable?: boolean;
     };
+    visibilityState?: {
+      disable?: boolean;
+    };
   };
 }

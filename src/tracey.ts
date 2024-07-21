@@ -7,6 +7,7 @@ import { ClickEventProducer } from "./producers/click-event.producer";
 import { ResizeEventProducer } from "./producers/resize-event.producer";
 import { ScrollEndEventProducer } from "./producers/scroll-end-event.producer";
 import { ScrollEventProducer } from "./producers/scroll-event.producer";
+import { VisibilityStateEventProducer } from "./producers/visibility-state-event.producer";
 import { BreakpointDeterminer } from "./util/breakpoints";
 import { Logger } from "./util/logger";
 
@@ -53,6 +54,7 @@ export class Tracey {
         .pipe(tap((e) => this.events.push(e)))
         .subscribe();
     }
+
     if (!this.options?.producers?.scroll?.disable) {
       const scrollStartProducer = new ScrollEventProducer(
         this.logger,
@@ -67,6 +69,17 @@ export class Tracey {
         this.options,
       );
       scrollEndProducer
+        .produce()
+        .pipe(tap((e) => this.events.push(e)))
+        .subscribe();
+    }
+
+    if (!this.options?.producers?.visibilityState?.disable) {
+      const producer = new VisibilityStateEventProducer(
+        this.logger,
+        this.options,
+      );
+      producer
         .produce()
         .pipe(tap((e) => this.events.push(e)))
         .subscribe();

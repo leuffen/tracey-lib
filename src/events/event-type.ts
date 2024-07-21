@@ -4,4 +4,5 @@ export enum EventType {
   RESIZE = "resize",
   SCROLL = "scroll",
   SCROLL_END = "scroll_end",
+  VISIBILITY_STATE = "visibility_state",
 }
