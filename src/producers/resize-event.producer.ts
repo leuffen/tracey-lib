@@ -18,9 +18,14 @@ export class ResizeEventProducer extends EventProducer<ResizeEvent> {
 
   produce(): Observable<ResizeEvent> {
     return fromEvent(window, "resize").pipe(
-      map(() => this.breakpointDeterminer.getBreakpoint()),
-      distinctUntilChanged(),
-      map((breakpoint) => new ResizeEvent(breakpoint ?? "unknown")),
+      map(() => ({
+        h: this.breakpointDeterminer.getHorizontalBreakpoint(),
+        v: this.breakpointDeterminer.getVerticalBreakpoint(),
+      })),
+      distinctUntilChanged(
+        (prev, curr) => prev.h === curr.h && prev.v === curr.v,
+      ),
+      map(({ h, v }) => new ResizeEvent(h, v)),
     );
   }
 }

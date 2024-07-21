@@ -7,10 +7,18 @@ export class BreakpointDeterminer {
 
   constructor(private readonly options: TraceyOptions) {}
 
-  getBreakpoint(): string {
+  getHorizontalBreakpoint(): string {
+    return this.getBreakpoint("innerWidth");
+  }
+
+  getVerticalBreakpoint(): string {
+    return this.getBreakpoint("innerHeight");
+  }
+
+  private getBreakpoint(property: "innerWidth" | "innerHeight"): string {
     for (let i = 0; i < this.orderedBreakpoints.length; i++) {
-      const [breakpoint, width] = this.orderedBreakpoints[i];
-      if (window.innerWidth >= width) {
+      const [breakpoint, measurement] = this.orderedBreakpoints[i];
+      if (window[property] >= measurement) {
         return breakpoint;
       }
     }

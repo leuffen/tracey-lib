@@ -62,7 +62,9 @@ export class Tracey {
         init: performance.now(),
       },
       screen: {
-        breakpoint: this.breakpointDeterminer.getBreakpoint(),
+        breakpointHorizontal:
+          this.breakpointDeterminer.getHorizontalBreakpoint(),
+        breakpointVertical: this.breakpointDeterminer.getVerticalBreakpoint(),
       },
     });
     this.events.push(initEvent);

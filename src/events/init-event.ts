@@ -12,7 +12,8 @@ export interface InitEventData {
     init: DOMHighResTimeStamp;
   };
   screen: {
-    breakpoint: string;
+    breakpointHorizontal: string;
+    breakpointVertical: string;
   };
 }
 

@@ -4,11 +4,15 @@ import { SerializedEvent } from "./serialized-event";
 import { TraceyEvent } from "./tracey-event";
 
 export interface ResizeEventData {
-  breakpoint: string;
+  breakpointHorizontal: string;
+  breakpointVertical: string;
 }
 
 export class ResizeEvent extends TraceyEvent<ResizeEventData> {
-  constructor(private readonly breakpoint: string) {
+  constructor(
+    private readonly breakpointHorizontal: string,
+    private readonly breakpointVertical: string,
+  ) {
     super(EventType.RESIZE);
   }
 
@@ -17,7 +21,8 @@ export class ResizeEvent extends TraceyEvent<ResizeEventData> {
       type: this.type,
       ts: this.timestamp,
       data: {
-        breakpoint: this.breakpoint,
+        breakpointHorizontal: this.breakpointHorizontal,
+        breakpointVertical: this.breakpointVertical,
       },
     };
   }
