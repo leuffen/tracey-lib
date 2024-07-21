@@ -13,7 +13,6 @@ import { BreakpointDeterminer } from "./util/breakpoints";
 import { Logger } from "./util/logger";
 
 export class Tracey {
-  readonly timeOrigin = performance.timeOrigin;
   readonly ctorTime = performance.now();
   readonly events: TraceyEvent<unknown>[] = [];
 
@@ -56,7 +55,7 @@ export class Tracey {
     const initEvent = new InitEvent({
       options: this.options,
       timing: {
-        origin: this.timeOrigin,
+        origin: performance.timeOrigin,
         ctor: this.ctorTime,
         init: performance.now(),
       },
