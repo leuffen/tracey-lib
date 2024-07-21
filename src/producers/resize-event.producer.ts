@@ -1,8 +1,7 @@
-import { distinctUntilChanged, filter, fromEvent, map, Observable } from "rxjs";
+import { distinctUntilChanged, fromEvent, map, Observable } from "rxjs";
 import { SharedOptions } from "../config/shared-options";
 import { TraceyOptions } from "../config/tracey-options";
-import { ClickEvent } from "../events/click-event";
-import { ResizeEvent, ResizeEventData } from "../events/resize-event";
+import { ResizeEvent } from "../events/resize-event";
 import { BreakpointDeterminer } from "../util/breakpoints";
 import { Logger } from "../util/logger";
 import { EventProducer } from "./event-producer";

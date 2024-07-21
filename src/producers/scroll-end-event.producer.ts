@@ -1,14 +1,5 @@
-import {
-  debounceTime,
-  filter,
-  fromEvent,
-  map,
-  Observable,
-  throttleTime,
-} from "rxjs";
-import { ClickEvent } from "../events/click-event";
+import { fromEvent, map, Observable } from "rxjs";
 import { ScrollEndEvent } from "../events/scroll-end-event";
-import { ScrollEvent } from "../events/scroll-event";
 import { EventProducer } from "./event-producer";
 
 export class ScrollEndEventProducer extends EventProducer<ScrollEndEvent> {

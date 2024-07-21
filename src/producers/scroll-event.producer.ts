@@ -1,12 +1,4 @@
-import {
-  debounceTime,
-  filter,
-  fromEvent,
-  map,
-  Observable,
-  throttleTime,
-} from "rxjs";
-import { ClickEvent } from "../events/click-event";
+import { fromEvent, map, Observable, throttleTime } from "rxjs";
 import { ScrollEvent } from "../events/scroll-event";
 import { EventProducer } from "./event-producer";
 
