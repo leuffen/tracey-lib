@@ -60,8 +60,14 @@
     <script type="module">
       import { Tracey } from "./src";
 
-      const tracey = new Tracey();
+      const tracey = new Tracey({
+        debug: true,
+      });
       tracey.init();
+
+      window.TRACEY_INSTANCE = tracey;
+
+      console.log("Use window.TRACEY_INSTANCE to interact with Tracey");
     </script>
   </body>
 </html>

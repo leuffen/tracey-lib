@@ -16,10 +16,13 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "bun build ./src/index.ts --outdir dist",
+    "build": "bun build ./src/index.ts --outdir dist --minify",
     "prepare": "husky"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
+  },
+  "dependencies": {
+    "rxjs": "7.8.1"
   }
 }
