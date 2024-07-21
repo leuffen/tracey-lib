@@ -4,6 +4,7 @@ import { TraceyOptions } from "./config/tracey-options";
 import { InitEvent } from "./events/init-event";
 import { TraceyEvent } from "./events/tracey-event";
 import { ClickEventProducer } from "./producers/click-event.producer";
+import { IntersectionEventProducer } from "./producers/intersection-event.producer";
 import { ResizeEventProducer } from "./producers/resize-event.producer";
 import { ScrollEndEventProducer } from "./producers/scroll-end-event.producer";
 import { ScrollEventProducer } from "./producers/scroll-event.producer";
@@ -45,6 +46,7 @@ export class Tracey {
       new ScrollEventProducer(this.logger, this.options).produce(),
       new ScrollEndEventProducer(this.logger, this.options).produce(),
       new VisibilityStateEventProducer(this.logger, this.options).produce(),
+      new IntersectionEventProducer(this.logger, this.options).produce(),
     )
       .pipe(tap((e) => this.events.push(e)))
       .subscribe();

@@ -24,5 +24,9 @@ export interface TraceyOptions {
     visibilityState?: {
       disabled?: boolean;
     };
+    intersection?: {
+      disabled?: boolean;
+      selectors: string[];
+    };
   };
 }

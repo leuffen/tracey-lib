@@ -38,12 +38,12 @@
   </head>
   <body>
     <section>
-      <h1>First section</h1>
+      <h1 data-tracey-name="first-section-heading">First section</h1>
       <p>Welcome to this demo of Tracey</p>
     </section>
 
     <section>
-      <h2>Second section</h2>
+      <h2 data-tracey-name="second-section-heading">Second section</h2>
       <p>
         Welcome to the second section. This is some text to be captured by
         Tracey.
@@ -68,6 +68,11 @@
           px500: 500,
           px1000: 1000,
           px1500: 1500,
+        },
+        producers: {
+          intersection: {
+            selectors: ["h1, h2"],
+          },
         },
       });
       tracey.init();
