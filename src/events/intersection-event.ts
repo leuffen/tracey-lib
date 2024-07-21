@@ -1,3 +1,4 @@
+import { getHierarchySelector } from "../util/dom";
 import { EventType } from "./event-type";
 import { SerializedEvent } from "./serialized-event";
 import { TraceyEvent } from "./tracey-event";
@@ -6,7 +7,10 @@ export interface IntersectionEventData {
   selector: string;
   intersectionRatio: number;
   isVisible: boolean;
-  dataTraceyName?: string;
+  target?: {
+    selector: string;
+    dataTraceyName: string | null;
+  };
 }
 
 export class IntersectionEvent extends TraceyEvent<IntersectionEventData> {
@@ -14,7 +18,7 @@ export class IntersectionEvent extends TraceyEvent<IntersectionEventData> {
     readonly selector: string,
     readonly intersectionRatio: number,
     readonly isVisible: boolean,
-    readonly dataTraceyName?: string,
+    readonly target: Element | null,
   ) {
     super(EventType.INTERSECTION);
   }
@@ -27,7 +31,13 @@ export class IntersectionEvent extends TraceyEvent<IntersectionEventData> {
         selector: this.selector,
         intersectionRatio: this.intersectionRatio,
         isVisible: this.isVisible,
-        dataTraceyName: this.dataTraceyName,
+        target:
+          this.target instanceof HTMLElement
+            ? {
+                selector: getHierarchySelector(this.target),
+                dataTraceyName: this.target.getAttribute("data-tracey-name"),
+              }
+            : undefined,
       },
     };
   }

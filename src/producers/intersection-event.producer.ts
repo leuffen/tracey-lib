@@ -31,14 +31,12 @@ export class IntersectionEventProducer extends EventProducer<IntersectionEvent> 
     return new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          const dataTraceyName =
-            entry.target.getAttribute("data-tracey-name") ?? undefined;
           subscriber.next(
             new IntersectionEvent(
               selector,
               entry.intersectionRatio,
               entry.isIntersecting,
-              dataTraceyName,
+              entry.target,
             ),
           );
         });
