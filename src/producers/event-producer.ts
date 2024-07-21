@@ -1,14 +1,16 @@
 import { Observable, tap } from "rxjs";
+import { SharedOptions } from "../config/shared-options";
+import { Logger } from "../util/logger";
 
 export abstract class EventProducer<T> {
   abstract produce(): Observable<T>;
 
-  constructor(options?: { debug?: boolean }) {
+  constructor(logger: Logger, options?: SharedOptions) {
     if (options?.debug) {
-      console.log(`EventProducer ${this.name} initialized.`);
+      logger.debug(`${this.name} initialized.`);
 
       this.produce()
-        .pipe(tap((e) => console.log(this.name, e)))
+        .pipe(tap((e) => logger.debug(this.name, e)))
         .subscribe();
     }
   }
