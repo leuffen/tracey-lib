@@ -1,12 +1,16 @@
 import { Observable, tap } from "rxjs";
 import { SharedOptions } from "../config/shared-options";
+import { TraceyOptions } from "../config/tracey-options";
 import { Logger } from "../util/logger";
 
 export abstract class EventProducer<T> {
   abstract produce(): Observable<T>;
 
-  constructor(logger: Logger, options?: SharedOptions) {
-    if (options?.debug) {
+  constructor(
+    logger: Logger,
+    protected readonly options: TraceyOptions & SharedOptions,
+  ) {
+    if (options.debug) {
       logger.debug(`${this.name} initialized.`);
 
       this.produce()

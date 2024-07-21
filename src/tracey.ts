@@ -4,6 +4,8 @@ import { TraceyOptions } from "./config/tracey-options";
 import { InitEvent } from "./events/init-event";
 import { ClickEventProducer } from "./producers/click-event.producer";
 import { TraceyEvent } from "./events/tracey-event";
+import { ResizeEventProducer } from "./producers/resize-event.producer";
+import { BreakpointDeterminer } from "./util/breakpoints";
 import { Logger } from "./util/logger";
 
 export class Tracey {
@@ -12,8 +14,11 @@ export class Tracey {
   readonly events: TraceyEvent<unknown>[] = [];
 
   private readonly logger = new Logger(this.options);
+  private readonly breakpointDeterminer = new BreakpointDeterminer(
+    this.options,
+  );
 
-  constructor(private readonly options?: TraceyOptions & SharedOptions) {
+  constructor(private readonly options: TraceyOptions & SharedOptions) {
     this.logger.debug("Instance created. Not yet initialized.");
   }
 
@@ -28,8 +33,20 @@ export class Tracey {
 
   private setupListeners() {
     if (!this.options?.disableProducers?.click) {
-      const clickListener = new ClickEventProducer(this.logger, this.options);
-      clickListener
+      const producer = new ClickEventProducer(this.logger, this.options);
+      producer
+        .produce()
+        .pipe(tap((e) => this.events.push(e)))
+        .subscribe();
+    }
+
+    if (!this.options?.disableProducers?.resize) {
+      const producer = new ResizeEventProducer(
+        this.breakpointDeterminer,
+        this.logger,
+        this.options,
+      );
+      producer
         .produce()
         .pipe(tap((e) => this.events.push(e)))
         .subscribe();
@@ -43,6 +60,9 @@ export class Tracey {
         origin: this.timeOrigin,
         ctor: this.ctorTime,
         init: performance.now(),
+      },
+      screen: {
+        breakpoint: this.breakpointDeterminer.getBreakpoint(),
       },
     });
     this.events.push(initEvent);

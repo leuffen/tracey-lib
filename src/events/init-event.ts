@@ -11,6 +11,9 @@ export interface InitEventData {
     ctor: DOMHighResTimeStamp;
     init: DOMHighResTimeStamp;
   };
+  screen: {
+    breakpoint: string;
+  };
 }
 
 export class InitEvent extends TraceyEvent<InitEventData> {
