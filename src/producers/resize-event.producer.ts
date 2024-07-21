@@ -1,4 +1,4 @@
-import { distinctUntilChanged, fromEvent, map, Observable } from "rxjs";
+import { distinctUntilChanged, filter, fromEvent, map, Observable } from "rxjs";
 import { SharedOptions } from "../config/shared-options";
 import { TraceyOptions } from "../config/tracey-options";
 import { ResizeEvent } from "../events/resize-event";
@@ -15,8 +15,13 @@ export class ResizeEventProducer extends EventProducer<ResizeEvent> {
     super(logger, options);
   }
 
+  isEnabled(): boolean {
+    return !this.options?.producers?.resize?.disabled;
+  }
+
   produce(): Observable<ResizeEvent> {
     return fromEvent(window, "resize").pipe(
+      filter(() => this.isEnabled()),
       map(() => ({
         h: this.breakpointDeterminer.getHorizontalBreakpoint(),
         v: this.breakpointDeterminer.getVerticalBreakpoint(),

@@ -1,4 +1,4 @@
-import { tap } from "rxjs";
+import { merge, tap } from "rxjs";
 import { SharedOptions } from "./config/shared-options";
 import { TraceyOptions } from "./config/tracey-options";
 import { InitEvent } from "./events/init-event";
@@ -35,55 +35,19 @@ export class Tracey {
   }
 
   private setupListeners() {
-    if (!this.options?.producers?.click?.disable) {
-      const producer = new ClickEventProducer(this.logger, this.options);
-      producer
-        .produce()
-        .pipe(tap((e) => this.events.push(e)))
-        .subscribe();
-    }
-
-    if (!this.options?.producers?.resize?.disable) {
-      const producer = new ResizeEventProducer(
+    merge(
+      new ClickEventProducer(this.logger, this.options).produce(),
+      new ResizeEventProducer(
         this.breakpointDeterminer,
         this.logger,
         this.options,
-      );
-      producer
-        .produce()
-        .pipe(tap((e) => this.events.push(e)))
-        .subscribe();
-    }
-
-    if (!this.options?.producers?.scroll?.disable) {
-      const scrollStartProducer = new ScrollEventProducer(
-        this.logger,
-        this.options,
-      );
-      scrollStartProducer
-        .produce()
-        .pipe(tap((e) => this.events.push(e)))
-        .subscribe();
-      const scrollEndProducer = new ScrollEndEventProducer(
-        this.logger,
-        this.options,
-      );
-      scrollEndProducer
-        .produce()
-        .pipe(tap((e) => this.events.push(e)))
-        .subscribe();
-    }
-
-    if (!this.options?.producers?.visibilityState?.disable) {
-      const producer = new VisibilityStateEventProducer(
-        this.logger,
-        this.options,
-      );
-      producer
-        .produce()
-        .pipe(tap((e) => this.events.push(e)))
-        .subscribe();
-    }
+      ).produce(),
+      new ScrollEventProducer(this.logger, this.options).produce(),
+      new ScrollEndEventProducer(this.logger, this.options).produce(),
+      new VisibilityStateEventProducer(this.logger, this.options).produce(),
+    )
+      .pipe(tap((e) => this.events.push(e)))
+      .subscribe();
   }
 
   private storeInitEvent() {

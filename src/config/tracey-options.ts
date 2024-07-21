@@ -12,17 +12,17 @@ export interface TraceyOptions {
   };
   producers?: {
     click?: {
-      disable?: boolean;
+      disabled?: boolean;
     };
     resize?: {
-      disable?: boolean;
+      disabled?: boolean;
     };
     scroll?: {
+      disabled?: boolean;
       throttleTime?: number;
-      disable?: boolean;
     };
     visibilityState?: {
-      disable?: boolean;
+      disabled?: boolean;
     };
   };
 }
