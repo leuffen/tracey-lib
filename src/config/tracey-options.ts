@@ -10,8 +10,16 @@ export interface TraceyOptions {
     base: 0;
     [key: string]: number;
   };
-  disableProducers?: {
-    click?: boolean;
-    resize?: boolean;
+  producers?: {
+    click?: {
+      disable?: boolean;
+    };
+    resize?: {
+      disable?: boolean;
+    };
+    scroll?: {
+      throttleTime?: number;
+      disable?: boolean;
+    };
   };
 }
