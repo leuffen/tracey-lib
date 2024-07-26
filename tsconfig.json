@@ -1,28 +1,10 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
-    "noImplicitAny": false,
-    "declaration": true,
-    "module": "esnext",
-    "target": "es6",
-    "allowJs": true,
+    "target": "es2016",
+    "module": "commonjs",
     "esModuleInterop": true,
-    "experimentalDecorators": true,
-
-
-    "emitDecoratorMetadata": true,
-    "moduleResolution": "node",
-    "lib": [
-      "es2021",
-      "dom"
-    ],
-
-  },
-  "include": [
-    "src/**/*",
-    "*.html"
-  ],
-  "exclude": [
-    "./test"
-  ]
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true
+  }
 }

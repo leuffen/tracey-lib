@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Tracey Demo</title>
+
+    <style type="text/tailwindcss">
+      html {
+        font-size: 20px;
+      }
+
+      section {
+        height: calc(100vh - 4rem);
+        background-color: #fafafa;
+        margin: 2rem;
+        padding: 2rem;
+      }
+
+      h1 {
+        @apply text-2xl;
+      }
+
+      h2 {
+        @apply text-xl;
+      }
+
+      p {
+        @apply mb-2;
+      }
+    </style>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+    <section>
+      <h1 data-tracey-name="first-section-heading">First section</h1>
+      <p>Welcome to this demo of Tracey</p>
+    </section>
+
+    <section>
+      <h2 data-tracey-name="second-section-heading">Second section</h2>
+      <p>
+        Welcome to the second section. This is some text to be captured by
+        Tracey.
+      </p>
+    </section>
+
+    <section>
+      <h2>Third section</h2>
+      <p>In this third section, we have a button to test interactions.</p>
+      <button>Click me</button>
+    </section>
+
+    <script src="./src/index.ts" type="module"></script>
+    <script type="module">
+      import { Tracey } from "./src";
+
+      const tracey = new Tracey({
+        debug: true,
+        breakpoints: {
+          base: 0,
+          px300: 300,
+          px500: 500,
+          px1000: 1000,
+          px1500: 1500,
+        },
+        producers: {
+          intersection: {
+            selectors: ["h1, h2"],
+          },
+        },
+      });
+      tracey.init();
+
+      window.TRACEY_INSTANCE = tracey;
+      console.log("");
+      console.log("Use window.TRACEY_INSTANCE to interact with Tracey");
+      console.log("");
+    </script>
+  </body>
+</html>
