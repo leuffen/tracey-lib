@@ -44,9 +44,6 @@ export class IntersectionAnalysis extends Analysis<IntersectionAnalysisResult> {
       filter((e) => e instanceof IntersectionEvent),
       filter((e) => e.target === this.element),
       tap((e) => {
-        this.logger.debug("Intersection event", e);
-      }),
-      tap((e) => {
         if (!this.isVisible && e.isVisible) {
           this.isVisible = true;
           this.enterCount++;
@@ -89,7 +86,7 @@ export class IntersectionAnalysis extends Analysis<IntersectionAnalysisResult> {
 
   private get totalVisibleTime(): number {
     return this.visibleTimes.reduce(
-      (acc, cur) => acc + (cur.duration ?? performance.now()),
+      (acc, cur) => acc + (cur.duration ?? performance.now() - cur.start),
       0,
     );
   }
