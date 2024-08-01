@@ -11,6 +11,13 @@ export interface TraceyOptions {
     [key: string]: number;
   };
   producers?: {
+    mouse?: {
+      disabled?: boolean;
+      /**
+       * @default `defaultThrottleTime`
+       */
+      throttleTime?: number;
+    };
     click?: {
       disabled?: boolean;
     };
