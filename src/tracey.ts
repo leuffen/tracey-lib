@@ -5,6 +5,7 @@ import { InitEvent } from "./events/init-event";
 import { TraceyEvent } from "./events/tracey-event";
 import { ClickEventProducer } from "./producers/click-event.producer";
 import { IntersectionEventProducer } from "./producers/intersection-event.producer";
+import { MouseMoveEventProducer } from "./producers/mouse-move-event.producer";
 import { ResizeEventProducer } from "./producers/resize-event.producer";
 import { ScrollEndEventProducer } from "./producers/scroll-end-event.producer";
 import { ScrollEventProducer } from "./producers/scroll-event.producer";
@@ -36,6 +37,7 @@ export class Tracey {
 
   private setupListeners() {
     merge(
+      new MouseMoveEventProducer(this.logger, this.options).produce(),
       new ClickEventProducer(this.logger, this.options).produce(),
       new ResizeEventProducer(
         this.breakpointDeterminer,
