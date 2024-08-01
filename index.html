@@ -61,7 +61,7 @@
       import { IntersectionAnalysis, Tracey } from "./src";
 
       const tracey = new Tracey({
-        debug: true,
+        debug: false,
         breakpoints: {
           base: 0,
           px300: 300,
@@ -91,13 +91,21 @@
         window.TRACEY.instance,
         "h1",
         {
+          debug: true,
           visualize: {
             enabled: true,
-            interval: 0,
+            interval: 500,
           },
         },
       );
       demoAnalysis.start();
+
+      window.TRACEY.analytics.demoAnalysis = demoAnalysis;
+
+      console.log("");
+      console.log(
+        "Use window.TRACEY.analytics.demoAnalysis to interact with the demo analysis instance",
+      );
     </script>
   </body>
 </html>
