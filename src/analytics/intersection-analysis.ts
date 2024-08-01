@@ -2,8 +2,10 @@ import { filter, Observable, tap } from "rxjs";
 import { SharedOptions } from "../config/shared-options";
 import { IntersectionEvent } from "../events/intersection-event";
 import { Tracey } from "../tracey";
+import { KeyValuePair } from "../util/key-value-pair";
 import { Logger } from "../util/logger";
 import { TimeSpan } from "../util/time-span";
+import { ElementStatsVisualizer } from "../visualization/element-stats-visualizer";
 import { Analysis, AnalysisResult } from "./analysis";
 
 export interface IntersectionAnalysisResult extends AnalysisResult {
@@ -81,10 +83,32 @@ export class IntersectionAnalysis extends Analysis<IntersectionAnalysisResult> {
       enterCount: this.enterCount,
       exitCount: this.exitCount,
       visibleTimes: this.visibleTimes,
-      totalVisibleTime: this.visibleTimes.reduce(
-        (acc, cur) => acc + (cur.duration ?? performance.now()),
-        0,
-      ),
+      totalVisibleTime: this.totalVisibleTime,
     };
+  }
+
+  private get totalVisibleTime(): number {
+    return this.visibleTimes.reduce(
+      (acc, cur) => acc + (cur.duration ?? performance.now()),
+      0,
+    );
+  }
+
+  protected override setupVisualizer(): ElementStatsVisualizer {
+    ElementStatsVisualizer.define();
+
+    const visualizer = document.createElement("element-stats-visualizer");
+    this.element.appendChild(visualizer);
+
+    return visualizer as ElementStatsVisualizer;
+  }
+
+  protected override getVisualizerData(): KeyValuePair[] {
+    return [
+      { key: "Enter count", value: this.enterCount },
+      { key: "Exit count", value: this.exitCount },
+      { key: "Visible times", value: this.visibleTimes.length },
+      { key: "Total visible time", value: this.totalVisibleTime + "ms" },
+    ];
   }
 }

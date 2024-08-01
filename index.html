@@ -84,8 +84,17 @@
 
       console.log("");
       console.log("Use window.TRACEY.instance to interact with Tracey");
-      console.log("Use window.analytics.* to create analysis classes");
+      console.log("Use window.TRACEY.analytics.* to create analysis classes");
       console.log("");
+
+      const demoAnalysis = new window.TRACEY.analytics.IntersectionAnalysis(
+        window.TRACEY.instance,
+        "h1",
+        {
+          visualize: true,
+        },
+      );
+      demoAnalysis.start();
     </script>
   </body>
 </html>
