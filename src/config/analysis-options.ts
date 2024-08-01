@@ -6,6 +6,9 @@ export interface AnalysisOptions {
     | boolean
     | {
         enabled: boolean;
+        /**
+         * Set to `0` to disable the interval.
+         */
         interval?: number;
       };
 }
