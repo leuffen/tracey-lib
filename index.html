@@ -58,7 +58,7 @@
 
     <script src="./src/index.ts" type="module"></script>
     <script type="module">
-      import { Tracey } from "./src";
+      import { IntersectionAnalysis, Tracey } from "./src";
 
       const tracey = new Tracey({
         debug: true,
@@ -77,9 +77,14 @@
       });
       tracey.init();
 
-      window.TRACEY_INSTANCE = tracey;
+      window.TRACEY = window.TRACEY || {};
+      window.TRACEY.instance = tracey;
+      window.TRACEY.analytics = window.TRACEY.analytics || {};
+      window.TRACEY.analytics.IntersectionAnalysis = IntersectionAnalysis;
+
       console.log("");
-      console.log("Use window.TRACEY_INSTANCE to interact with Tracey");
+      console.log("Use window.TRACEY.instance to interact with Tracey");
+      console.log("Use window.analytics.* to create analysis classes");
       console.log("");
     </script>
   </body>

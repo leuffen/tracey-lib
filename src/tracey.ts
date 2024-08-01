@@ -1,4 +1,4 @@
-import { merge, tap } from "rxjs";
+import { merge, Observable, tap } from "rxjs";
 import { SharedOptions } from "./config/shared-options";
 import { TraceyOptions } from "./config/tracey-options";
 import { InitEvent } from "./events/init-event";
@@ -14,6 +14,7 @@ import { Logger } from "./util/logger";
 
 export class Tracey {
   readonly ctorTime = performance.now();
+  eventStream$?: Observable<TraceyEvent<unknown>>;
   readonly events: TraceyEvent<unknown>[] = [];
 
   private readonly logger = new Logger(this.options);
@@ -35,7 +36,7 @@ export class Tracey {
   }
 
   private setupListeners() {
-    merge(
+    this.eventStream$ = merge(
       new ClickEventProducer(this.logger, this.options).produce(),
       new ResizeEventProducer(
         this.breakpointDeterminer,
@@ -46,9 +47,9 @@ export class Tracey {
       new ScrollEndEventProducer(this.logger, this.options).produce(),
       new VisibilityStateEventProducer(this.logger, this.options).produce(),
       new IntersectionEventProducer(this.logger, this.options).produce(),
-    )
-      .pipe(tap((e) => this.events.push(e)))
-      .subscribe();
+    ).pipe(tap((e) => this.events.push(e)));
+
+    this.eventStream$.subscribe();
   }
 
   private storeInitEvent() {
