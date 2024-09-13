@@ -58,7 +58,7 @@
 
     <script src="./src/index.ts" type="module"></script>
     <script type="module">
-      import { IntersectionAnalysis, Tracey } from "./src";
+      import { ClickAnalysis, IntersectionAnalysis, Tracey } from "./src";
 
       const tracey = new Tracey({
         debug: false,
@@ -81,26 +81,36 @@
       window.TRACEY.instance = tracey;
       window.TRACEY.analytics = window.TRACEY.analytics || {};
       window.TRACEY.analytics.IntersectionAnalysis = IntersectionAnalysis;
+      window.TRACEY.analytics.ClickAnalysis = ClickAnalysis;
 
       console.log("");
       console.log("Use window.TRACEY.instance to interact with Tracey");
       console.log("Use window.TRACEY.analytics.* to create analysis classes");
       console.log("");
 
+      const options = {
+        debug: true,
+        visualize: {
+          enabled: true,
+          interval: 500,
+        },
+      };
+
       const demoAnalysis = new window.TRACEY.analytics.IntersectionAnalysis(
         window.TRACEY.instance,
         "h1",
-        {
-          debug: true,
-          visualize: {
-            enabled: true,
-            interval: 500,
-          },
-        },
+        options,
       );
       demoAnalysis.start();
 
+      const clickAnalysis = new window.TRACEY.analytics.ClickAnalysis(
+        window.TRACEY.instance,
+        options,
+      );
+      clickAnalysis.start();
+
       window.TRACEY.analytics.demoAnalysis = demoAnalysis;
+      window.TRACEY.analytics.clickAnalysis = clickAnalysis;
 
       console.log("");
       console.log(
