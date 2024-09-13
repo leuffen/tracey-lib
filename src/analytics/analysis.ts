@@ -1,4 +1,13 @@
-import { iif, interval, merge, Observable, of, Subscription, tap } from "rxjs";
+import {
+  iif,
+  interval,
+  merge,
+  Observable,
+  of,
+  shareReplay,
+  Subscription,
+  tap,
+} from "rxjs";
 import { AnalysisOptions } from "../config/analysis-options";
 import { defaultVisualizerInterval } from "../config/defaults";
 import { SharedOptions } from "../config/shared-options";
@@ -51,7 +60,7 @@ export abstract class Analysis<R extends AnalysisResult> {
       );
     }
 
-    const stream$ = this.observe(this.tracey.eventStream$);
+    const stream$ = this.observe(this.tracey.eventStream$).pipe(shareReplay(1));
 
     if (this.shouldVisualize) {
       this.visualizer = this.setupVisualizer();
@@ -74,7 +83,7 @@ export abstract class Analysis<R extends AnalysisResult> {
     }
 
     this.startTime = performance.now();
-    this.subscription = this.observe(this.tracey.eventStream$).subscribe();
+    this.subscription = stream$.subscribe();
   }
 
   stop(): R {
