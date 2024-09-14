@@ -16,6 +16,8 @@ export interface IntersectionAnalysisResult extends AnalysisResult {
   totalVisibleTime: number;
 }
 
+const InternalConstructorCall = Symbol.for("internalConstructorCall");
+
 export class IntersectionAnalysis extends Analysis<IntersectionAnalysisResult> {
   private isVisible = false;
   private enterCount = 0;
@@ -23,19 +25,42 @@ export class IntersectionAnalysis extends Analysis<IntersectionAnalysisResult> {
   private visibleTimes: TimeSpan[] = [];
 
   private readonly logger = new Logger(this.options, this.name);
-  private readonly element: HTMLElement;
+
+  static create(
+    selector: string,
+    tracey: Tracey,
+    options?: SharedOptions,
+  ): IntersectionAnalysis[] {
+    const elements = document.querySelectorAll(selector);
+
+    if (!elements.length) {
+      throw new Error(`No elements found with selector "${selector}".`);
+    }
+
+    return Array.from(elements).map(
+      (element) =>
+        new IntersectionAnalysis(
+          element,
+          tracey,
+          options,
+          // @ts-expect-error
+          InternalConstructorCall,
+        ),
+    );
+  }
 
   constructor(
+    private readonly element: Element,
     tracey: Tracey,
-    readonly selector: string,
     options?: SharedOptions,
   ) {
-    super("IntersectionAnalysis", tracey, options);
-    this.element = document.querySelector(selector) as HTMLElement;
-
-    if (!this.element) {
-      throw new Error(`Element with selector "${selector}" not found.`);
+    if (arguments[3] !== InternalConstructorCall) {
+      throw new Error(
+        "Use the static create() method to create instances of IntersectionAnalysis.",
+      );
     }
+
+    super("IntersectionAnalysis", tracey, options);
   }
 
   protected override observe(
