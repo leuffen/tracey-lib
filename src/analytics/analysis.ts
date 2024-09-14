@@ -13,8 +13,10 @@ import { defaultVisualizerInterval } from "../config/defaults";
 import { SharedOptions } from "../config/shared-options";
 import { TraceyEvent } from "../events/tracey-event";
 import { Tracey } from "../tracey";
+import { TraceyAttributeNames } from "../util/attributes";
 import { KeyValuePair } from "../util/key-value-pair";
 import { ElementStatsVisualizer } from "../visualization/element-stats-visualizer";
+import { ElementStatsVisualizerStack } from "../visualization/element-stats-visualizer-stack";
 
 export interface AnalysisResult {
   timing: {
@@ -24,6 +26,7 @@ export interface AnalysisResult {
 }
 
 export abstract class Analysis<R extends AnalysisResult> {
+  private visualizerStack?: ElementStatsVisualizerStack;
   private visualizer?: ElementStatsVisualizer;
   private visualizerSubscription?: Subscription;
 
@@ -31,7 +34,6 @@ export abstract class Analysis<R extends AnalysisResult> {
   protected startTime?: DOMHighResTimeStamp;
   protected endTime?: DOMHighResTimeStamp;
 
-  protected abstract setupVisualizer(): ElementStatsVisualizer;
   protected abstract getVisualizerData(): KeyValuePair[];
 
   protected abstract getResult(): R;
@@ -40,6 +42,7 @@ export abstract class Analysis<R extends AnalysisResult> {
   ): Observable<unknown>;
 
   protected constructor(
+    protected readonly name: string,
     protected readonly tracey: Tracey,
     protected readonly options?: SharedOptions & AnalysisOptions,
   ) {}
@@ -63,7 +66,11 @@ export abstract class Analysis<R extends AnalysisResult> {
     const stream$ = this.observe(this.tracey.eventStream$).pipe(shareReplay(1));
 
     if (this.shouldVisualize) {
+      this.setupVisualizerStack();
       this.visualizer = this.setupVisualizer();
+
+      this.visualizerStack!.addVisualizer(this.visualizer);
+
       this.visualizerSubscription = merge(
         stream$,
         iif(
@@ -107,5 +114,30 @@ export abstract class Analysis<R extends AnalysisResult> {
     }
 
     return this.options?.visualize?.interval ?? defaultVisualizerInterval;
+  }
+
+  protected setupVisualizer(): ElementStatsVisualizer {
+    const tag = ElementStatsVisualizer.define();
+    const el = document.createElement(tag) as ElementStatsVisualizer;
+    el.setAttribute(TraceyAttributeNames.DATA_LABEL, this.name);
+
+    return el;
+  }
+
+  private setupVisualizerStack(): void {
+    if (this.visualizerStack) {
+      return;
+    }
+
+    const tag = ElementStatsVisualizerStack.define();
+    const existing = document.querySelector<ElementStatsVisualizerStack>(tag);
+    if (existing) {
+      this.visualizerStack = existing;
+      return;
+    }
+
+    const stack = document.createElement(tag) as ElementStatsVisualizerStack;
+    document.body.appendChild(stack);
+    this.visualizerStack = stack;
   }
 }

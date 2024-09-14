@@ -2,6 +2,7 @@ import { filter, Observable, tap } from "rxjs";
 import { SharedOptions } from "../config/shared-options";
 import { IntersectionEvent } from "../events/intersection-event";
 import { Tracey } from "../tracey";
+import { TraceyAttributeNames } from "../util/attributes";
 import { KeyValuePair } from "../util/key-value-pair";
 import { Logger } from "../util/logger";
 import { TimeSpan } from "../util/time-span";
@@ -21,7 +22,7 @@ export class IntersectionAnalysis extends Analysis<IntersectionAnalysisResult> {
   private exitCount = 0;
   private visibleTimes: TimeSpan[] = [];
 
-  private readonly logger = new Logger(this.options, "IntersectionAnalysis");
+  private readonly logger = new Logger(this.options, this.name);
   private readonly element: HTMLElement;
 
   constructor(
@@ -29,7 +30,7 @@ export class IntersectionAnalysis extends Analysis<IntersectionAnalysisResult> {
     readonly selector: string,
     options?: SharedOptions,
   ) {
-    super(tracey, options);
+    super("IntersectionAnalysis", tracey, options);
     this.element = document.querySelector(selector) as HTMLElement;
 
     if (!this.element) {
@@ -92,12 +93,13 @@ export class IntersectionAnalysis extends Analysis<IntersectionAnalysisResult> {
   }
 
   protected override setupVisualizer(): ElementStatsVisualizer {
-    ElementStatsVisualizer.define();
+    const visualizer = super.setupVisualizer();
+    const randomId = Math.random().toString(36).substring(2, 15);
 
-    const visualizer = document.createElement("element-stats-visualizer");
-    this.element.appendChild(visualizer);
+    this.element.setAttribute(TraceyAttributeNames.DATA_TRACEY_ID, randomId);
+    visualizer.setAttribute(TraceyAttributeNames.DATA_TRACEY_HOST_ID, randomId);
 
-    return visualizer as ElementStatsVisualizer;
+    return visualizer;
   }
 
   protected override getVisualizerData(): KeyValuePair[] {

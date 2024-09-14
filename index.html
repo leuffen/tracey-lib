@@ -96,12 +96,21 @@
         },
       };
 
-      const demoAnalysis = new window.TRACEY.analytics.IntersectionAnalysis(
-        window.TRACEY.instance,
-        "h1",
-        options,
-      );
-      demoAnalysis.start();
+      const h1IntersectionAnalysis =
+        new window.TRACEY.analytics.IntersectionAnalysis(
+          window.TRACEY.instance,
+          "h1",
+          options,
+        );
+      h1IntersectionAnalysis.start();
+
+      const h2IntersectionAnalysis =
+        new window.TRACEY.analytics.IntersectionAnalysis(
+          window.TRACEY.instance,
+          "h2",
+          options,
+        );
+      h2IntersectionAnalysis.start();
 
       const clickAnalysis = new window.TRACEY.analytics.ClickAnalysis(
         window.TRACEY.instance,
@@ -109,12 +118,13 @@
       );
       clickAnalysis.start();
 
-      window.TRACEY.analytics.demoAnalysis = demoAnalysis;
+      window.TRACEY.analytics.h1IntersectionAnalysis = h1IntersectionAnalysis;
+      window.TRACEY.analytics.h2IntersectionAnalysis = h2IntersectionAnalysis;
       window.TRACEY.analytics.clickAnalysis = clickAnalysis;
 
       console.log("");
       console.log(
-        "Use window.TRACEY.analytics.demoAnalysis to interact with the demo analysis instance",
+        "Use window.TRACEY.analytics.* to interact with the analysis instances",
       );
     </script>
   </body>

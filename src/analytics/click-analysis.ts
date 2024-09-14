@@ -5,7 +5,6 @@ import { Tracey } from "../tracey";
 import { getTraceyName, TraceyAttributeNames } from "../util/attributes";
 import { getHierarchySelector } from "../util/dom";
 import { KeyValuePair } from "../util/key-value-pair";
-import { ElementStatsVisualizer } from "../visualization/element-stats-visualizer";
 import { Analysis, AnalysisResult } from "./analysis";
 
 export interface ClickAnalysisResult extends AnalysisResult {
@@ -17,7 +16,7 @@ export class ClickAnalysis extends Analysis<ClickAnalysisResult> {
   private targetHits = new Map<Element, number>();
 
   constructor(tracey: Tracey, options?: SharedOptions) {
-    super(tracey, options);
+    super("ClickAnalysis", tracey, options);
   }
 
   protected override observe(
@@ -41,16 +40,6 @@ export class ClickAnalysis extends Analysis<ClickAnalysisResult> {
       ...this.getBaseResult(),
       clickCount: this.clickCount,
     };
-  }
-
-  protected override setupVisualizer(): ElementStatsVisualizer {
-    ElementStatsVisualizer.define();
-
-    const visualizer = document.createElement("element-stats-visualizer");
-
-    document.body.appendChild(visualizer);
-
-    return visualizer as ElementStatsVisualizer;
   }
 
   protected override getVisualizerData(): KeyValuePair[] {

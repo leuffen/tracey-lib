@@ -1,3 +1,4 @@
+import { getTraceyName, TraceyAttributeNames } from "../util/attributes";
 import { getHierarchySelector } from "../util/dom";
 import { KeyValuePair } from "../util/key-value-pair";
 
@@ -5,11 +6,20 @@ export class ElementStatsVisualizer extends HTMLElement {
   static define(
     tag = "element-stats-visualizer",
     registry = customElements,
-  ): void {
+  ): string {
     if (!registry.get(tag)) {
       registry.define(tag, this);
     }
+
+    return tag;
   }
+
+  private observedElement?: Element;
+  private observedElementIsVisible = false;
+  private observedElementObserver?: IntersectionObserver;
+
+  private forceExpanded = false;
+  private isExpanded = true;
 
   private readonly shadow: ShadowRoot;
   #data: KeyValuePair[] = [];
@@ -25,16 +35,44 @@ export class ElementStatsVisualizer extends HTMLElement {
   }
 
   connectedCallback(): void {
+    this.setupObservedElement();
     this.render();
+  }
+
+  disconnectedCallback(): void {
+    if (this.observedElementObserver) {
+      this.observedElementObserver.disconnect();
+    }
+  }
+
+  private setupObservedElement(): void {
+    const id = this.getAttribute(TraceyAttributeNames.DATA_TRACEY_HOST_ID);
+    this.observedElement =
+      document.querySelector(
+        `[${TraceyAttributeNames.DATA_TRACEY_ID}="${id}"]`,
+      ) ?? undefined;
+
+    if (this.observedElement) {
+      const observer = new IntersectionObserver((entries) => {
+        this.observedElementIsVisible = entries.some(
+          (entry) => entry.isIntersecting,
+        );
+        this.isExpanded = this.observedElementIsVisible || this.forceExpanded;
+
+        this.render();
+      });
+
+      observer.observe(this.observedElement);
+      this.observedElementObserver = observer;
+    }
   }
 
   private render(): void {
     this.shadow.innerHTML = `
       <style>
         :host {
-          position: fixed;
-          top: 0;
-          right: 0;
+          position: static;
+          display: block;
           
           opacity: .4;
           line-height: 1;
@@ -55,7 +93,6 @@ export class ElementStatsVisualizer extends HTMLElement {
         
         .heading {
           letter-spacing: 1px;
-          text-transform: uppercase;
           text-decoration: underline;
           display: block;
           margin-bottom: 4px;
@@ -70,20 +107,57 @@ export class ElementStatsVisualizer extends HTMLElement {
         }
       </style>
       <div>
-        <span class="heading">Element Information</span>
+        <span class="heading">${this.label}</span>
         ${this.getTableHtml()}
       </div>
     `;
+
+    if (!this.isExpanded) {
+      this.shadow.querySelector("[data-expand-btn]")?.addEventListener(
+        "click",
+        () => {
+          this.forceExpanded = true;
+          this.isExpanded = true;
+          this.render();
+        },
+        { once: true },
+      );
+    }
+    if (this.forceExpanded) {
+      this.shadow.querySelector("[data-collapse-btn]")?.addEventListener(
+        "click",
+        () => {
+          this.forceExpanded = false;
+          this.isExpanded = false;
+          this.render();
+        },
+        { once: true },
+      );
+    }
+  }
+
+  private get label(): string {
+    return (
+      this.getAttribute(TraceyAttributeNames.DATA_LABEL) ??
+      "Element Information"
+    );
   }
 
   private getTableHtml(): string {
+    if (!this.isExpanded) {
+      return `<span data-expand-btn>(expand)</span>`;
+    }
+
     return `
       <table>
         <tbody>
           ${this.getHostSelectorTableRow()}
+          ${this.getDataTraceyNameTableRow()}
           ${this.#data.map((entry) => this.getTableRowHtml(entry)).join("")}
         </tbody>
       </table>
+      
+      ${this.forceExpanded ? "<span data-collapse-btn>(collapse)</span>" : ""}
     `;
   }
 
@@ -97,9 +171,24 @@ export class ElementStatsVisualizer extends HTMLElement {
   }
 
   private getHostSelectorTableRow(): string {
+    if (!this.observedElement) {
+      return "";
+    }
+
     return this.getTableRowHtml({
       key: "Host Selector",
-      value: getHierarchySelector(this.parentElement),
+      value: getHierarchySelector(this.observedElement),
+    });
+  }
+
+  private getDataTraceyNameTableRow(): string {
+    if (!this.observedElement) {
+      return "";
+    }
+
+    return this.getTableRowHtml({
+      key: TraceyAttributeNames.DATA_TRACEY_NAME,
+      value: getTraceyName(this.observedElement) ?? "-",
     });
   }
 }
