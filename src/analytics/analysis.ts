@@ -14,6 +14,7 @@ import { SharedOptions } from "../config/shared-options";
 import { TraceyEvent } from "../events/tracey-event";
 import { Tracey } from "../tracey";
 import { TraceyAttributeNames } from "../util/attributes";
+import { TraceyError, TraceyErrorCode } from "../util/error";
 import { KeyValuePair } from "../util/key-value-pair";
 import { Logger } from "../util/logger";
 import { ElementStatsVisualizer } from "../visualization/element-stats-visualizer";
@@ -27,6 +28,9 @@ export interface AnalysisResult {
 }
 
 export abstract class Analysis<R extends AnalysisResult> {
+  private started = false;
+  private stopped = false;
+
   private visualizerStack?: ElementStatsVisualizerStack;
   private visualizer?: ElementStatsVisualizer;
   private visualizerSubscription?: Subscription;
@@ -47,7 +51,9 @@ export abstract class Analysis<R extends AnalysisResult> {
     protected readonly name: string,
     protected readonly tracey: Tracey,
     protected readonly options?: SharedOptions & AnalysisOptions,
-  ) {}
+  ) {
+    this.tracey.analyses.push(this);
+  }
 
   protected getBaseResult(): AnalysisResult {
     return {
@@ -59,9 +65,14 @@ export abstract class Analysis<R extends AnalysisResult> {
   }
 
   start(): void {
+    if (this.started) {
+      throw new TraceyError(TraceyErrorCode.ANALYSIS_ALREADY_STARTED);
+    }
+
     if (!this.tracey.eventStream$) {
-      throw new Error(
-        "Event stream not initialized. Tracey instance has not been started yet.",
+      throw new TraceyError(
+        TraceyErrorCode.TRACEY_NOT_INITIALIZED,
+        "Can not start analysis. Event stream not initialized.",
       );
     }
 
@@ -93,9 +104,18 @@ export abstract class Analysis<R extends AnalysisResult> {
 
     this.startTime = performance.now();
     this.subscription = stream$.subscribe();
+    this.started = true;
   }
 
   stop(): R {
+    if (!this.started) {
+      throw new TraceyError(TraceyErrorCode.ANALYSIS_NOT_STARTED);
+    }
+    if (this.stopped) {
+      throw new TraceyError(TraceyErrorCode.ANALYSIS_ALREADY_STOPPED);
+    }
+    this.stopped = true;
+
     this.endTime = performance.now();
     this.subscription?.unsubscribe();
     this.visualizerSubscription?.unsubscribe();
