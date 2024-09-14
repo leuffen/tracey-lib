@@ -15,6 +15,7 @@ import { TraceyEvent } from "../events/tracey-event";
 import { Tracey } from "../tracey";
 import { TraceyAttributeNames } from "../util/attributes";
 import { KeyValuePair } from "../util/key-value-pair";
+import { Logger } from "../util/logger";
 import { ElementStatsVisualizer } from "../visualization/element-stats-visualizer";
 import { ElementStatsVisualizerStack } from "../visualization/element-stats-visualizer-stack";
 
@@ -30,6 +31,7 @@ export abstract class Analysis<R extends AnalysisResult> {
   private visualizer?: ElementStatsVisualizer;
   private visualizerSubscription?: Subscription;
 
+  protected readonly logger = new Logger(this.options, this.name);
   protected subscription?: Subscription;
   protected startTime?: DOMHighResTimeStamp;
   protected endTime?: DOMHighResTimeStamp;

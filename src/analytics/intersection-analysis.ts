@@ -4,7 +4,6 @@ import { IntersectionEvent } from "../events/intersection-event";
 import { Tracey } from "../tracey";
 import { TraceyAttributeNames } from "../util/attributes";
 import { KeyValuePair } from "../util/key-value-pair";
-import { Logger } from "../util/logger";
 import { TimeSpan } from "../util/time-span";
 import { ElementStatsVisualizer } from "../visualization/element-stats-visualizer";
 import { Analysis, AnalysisResult } from "./analysis";
@@ -23,8 +22,6 @@ export class IntersectionAnalysis extends Analysis<IntersectionAnalysisResult> {
   private enterCount = 0;
   private exitCount = 0;
   private visibleTimes: TimeSpan[] = [];
-
-  private readonly logger = new Logger(this.options, this.name);
 
   static create(
     selector: string,
