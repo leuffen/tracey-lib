@@ -1,6 +1,5 @@
 const functions = require("@google-cloud/functions-framework");
 const { Storage } = require("@google-cloud/storage");
-const { format } = require("util");
 const storage = new Storage();
 
 const bucketName = process.env.BUCKET_NAME;
@@ -21,10 +20,24 @@ functions.http("eventsIngress", (req, res) => {
     res.status(204).send("");
   } else if (req.method === "POST") {
     try {
-      const jsonData = req.body;
+      let events = [];
+      try {
+        events = JSON.parse(req.body);
+      } catch (err) {
+        res.set("x-tracey-error", "body-parse-error");
+        res.status(400).send();
+        return;
+      }
 
-      if (!jsonData) {
-        res.status(400).send({ error: "Invalid or missing JSON data" });
+      if (!Array.isArray(events)) {
+        res.set("x-tracey-error", "no-events-array");
+        res.status(400).send();
+        return;
+      }
+
+      if (events.length === 0) {
+        res.set("x-tracey-error", "empty-events-array");
+        res.status(200).send();
         return;
       }
 
@@ -43,23 +56,45 @@ functions.http("eventsIngress", (req, res) => {
 
       stream.on("error", (err) => {
         console.error("Error uploading file:", err);
-        res.status(500).send({ error: err.message });
+        res.set("x-tracey-error", "file-upload-error");
+        res.status(500).send();
       });
 
       stream.on("finish", () => {
-        const publicUrl = format(
-          `https://storage.googleapis.com/${bucket.name}/${file.name}`,
-        );
-        res.status(200).send({ publicUrl });
+        res.status(200).send();
       });
 
-      const jsonStr = JSON.stringify(jsonData);
-      stream.end(jsonStr);
+      const data = {
+        events,
+        headers: getHeaderValues(req),
+      };
+      stream.end(JSON.stringify(data));
     } catch (err) {
-      console.error("Error processing request:", err);
-      res.status(500).send({ error: err.message });
+      res.set("x-tracey-error", err.message);
+      res.status(500).send();
     }
   } else {
     res.status(405).send("Method Not Allowed");
   }
 });
+
+/**
+ * @param {Request} req
+ * @return {Record<string, string>}
+ */
+function getHeaderValues(req) {
+  const headerNames = [
+    "User-Agent",
+    "Sec-Ch-Ua",
+    "Sec-Ch-Ua-Mobile",
+    "Sec-Ch-Ua-Platform",
+  ];
+  const headers = {};
+  headerNames.forEach((name) => {
+    if (req.get(name)) {
+      headers[name] = req.get(name);
+    }
+  });
+
+  return headers;
+}
