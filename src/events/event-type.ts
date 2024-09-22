@@ -1,5 +1,6 @@
 export enum EventType {
   INIT = "init",
+  UNLOAD = "unload",
   CLICK = "click",
   RESIZE = "resize",
   MOUSE = "mouse",

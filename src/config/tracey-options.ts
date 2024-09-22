@@ -36,4 +36,21 @@ export interface TraceyOptions {
       selectors: string[];
     };
   };
+  dataTransfer?: {
+    endpoint: string;
+    /**
+     * @default `defaultDataTransferInterval`
+     */
+    interval?: number;
+    /**
+     * @default `defaultDataTransferEventCount`
+     */
+    minEventCount?: number;
+  };
+  /**
+   * Settings for a random session ID that will be sent with every event.
+   */
+  sessionId: {
+    disabled?: boolean;
+  };
 }
