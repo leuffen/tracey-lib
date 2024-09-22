@@ -41,12 +41,11 @@ functions.http("eventsIngress", (req, res) => {
         return;
       }
 
-      const timestamp = new Date()
+      const date = new Date()
         .toISOString()
-        .replace(/[-:]/g, "")
-        .replace(/\..+/, "");
-      const fileName = `data-${timestamp}.json`;
-
+        .replaceAll(":", "-")
+        .replaceAll(".", "-");
+      const fileName = `tracey-${date}.json`;
       const file = bucket.file(fileName);
       const stream = file.createWriteStream({
         metadata: {
