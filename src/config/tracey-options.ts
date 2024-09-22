@@ -36,4 +36,11 @@ export interface TraceyOptions {
       selectors: string[];
     };
   };
+  dataTransfer?: {
+    endpoint: string;
+    /**
+     * @default `defaultDataTransferInterval`
+     */
+    interval?: number;
+  };
 }

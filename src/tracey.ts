@@ -1,4 +1,5 @@
-import { merge, tap } from "rxjs";
+import { filter, from, interval, map, merge, switchMap, tap } from "rxjs";
+import { defaultDataTransferInterval } from "./config/defaults";
 import { SharedOptions } from "./config/shared-options";
 import { TraceyOptions } from "./config/tracey-options";
 import { InitEvent } from "./events/init-event";
@@ -22,6 +23,8 @@ export class Tracey {
     this.options,
   );
 
+  private lastSentEventIndex = 0;
+
   constructor(private readonly options: TraceyOptions & SharedOptions) {
     this.logger.debug("Instance created. Not yet initialized.");
   }
@@ -29,10 +32,38 @@ export class Tracey {
   init(): void {
     this.storeInitEvent();
     this.setupListeners();
+    this.setupDataTransfer();
   }
 
   dump(): void {
     console.log(this.events.map((e) => e.toSerializable()));
+  }
+
+  private setupDataTransfer() {
+    if (!this.options.dataTransfer) {
+      return;
+    }
+
+    interval(
+      this.options?.dataTransfer?.interval ?? defaultDataTransferInterval,
+    )
+      .pipe(
+        filter(() => document.visibilityState === "visible"),
+        map(() => this.events.slice(this.lastSentEventIndex)),
+        filter((events) => events.length > 0),
+        tap((events) => {
+          this.lastSentEventIndex += events.length;
+        }),
+        switchMap((events) => {
+          const promise = fetch(this.options.dataTransfer!.endpoint, {
+            method: "POST",
+            body: JSON.stringify(events.map((e) => e.toSerializable())),
+          });
+
+          return from(promise);
+        }),
+      )
+      .subscribe();
   }
 
   private setupListeners() {
