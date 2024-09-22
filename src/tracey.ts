@@ -15,6 +15,9 @@ import { BreakpointDeterminer } from "./util/breakpoints";
 import { Logger } from "./util/logger";
 
 export class Tracey {
+  readonly sessionId = this.options?.sessionId?.disabled
+    ? undefined
+    : window.crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
   readonly ctorTime = performance.now();
   readonly events: TraceyEvent<unknown>[] = [];
 

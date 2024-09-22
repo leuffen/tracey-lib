@@ -47,4 +47,10 @@ export interface TraceyOptions {
      */
     minEventCount?: number;
   };
+  /**
+   * Settings for a random session ID that will be sent with every event.
+   */
+  sessionId: {
+    disabled?: boolean;
+  };
 }

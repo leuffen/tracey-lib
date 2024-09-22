@@ -41,11 +41,12 @@ functions.http("eventsIngress", (req, res) => {
         return;
       }
 
+      const sessionId = getSessionId(req);
       const date = new Date()
         .toISOString()
         .replaceAll(":", "-")
         .replaceAll(".", "-");
-      const fileName = `tracey-${date}.json`;
+      const fileName = `tracey${sessionId ? "-" + sessionId : ""}-${date}.json`;
       const file = bucket.file(fileName);
       const stream = file.createWriteStream({
         metadata: {
@@ -65,6 +66,7 @@ functions.http("eventsIngress", (req, res) => {
 
       const data = {
         events,
+        sessionId,
         headers: getHeaderValues(req),
       };
       stream.end(JSON.stringify(data));
@@ -76,6 +78,14 @@ functions.http("eventsIngress", (req, res) => {
     res.status(405).send("Method Not Allowed");
   }
 });
+
+/**
+ * @param {Request} req
+ * @return {string|undefined}
+ */
+function getSessionId(req) {
+  return req.query.s || undefined;
+}
 
 /**
  * @param {Request} req

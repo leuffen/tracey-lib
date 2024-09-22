@@ -72,8 +72,13 @@ export class DataTransferService {
   }
 
   private sendEvents(events: TraceyEvent<unknown>[]) {
+    const url = new URL(this.options.dataTransfer!.endpoint);
+    if (this.tracey.sessionId) {
+      url.searchParams.set("s", this.tracey.sessionId);
+    }
+
     navigator.sendBeacon(
-      this.options.dataTransfer!.endpoint,
+      url,
       JSON.stringify(events.map((e) => e.toSerializable())),
     );
   }
