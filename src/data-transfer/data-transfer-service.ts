@@ -3,6 +3,7 @@ import {
   defaultDataTransferEventCount,
   defaultDataTransferInterval,
 } from "../config/defaults";
+import { SharedOptions } from "../config/shared-options";
 import { TraceyOptions } from "../config/tracey-options";
 import { TraceyEvent } from "../events/tracey-event";
 import { UnloadEvent } from "../events/unload-event";
@@ -13,7 +14,7 @@ export class DataTransferService {
 
   constructor(
     private readonly tracey: Tracey,
-    private readonly options: TraceyOptions,
+    private readonly options: TraceyOptions & SharedOptions,
   ) {
     if (this.options?.dataTransfer?.minEventCount) {
       if (
@@ -73,8 +74,13 @@ export class DataTransferService {
 
   private sendEvents(events: TraceyEvent<unknown>[]) {
     const url = new URL(this.options.dataTransfer!.endpoint);
+
     if (this.tracey.sessionId) {
       url.searchParams.set("s", this.tracey.sessionId);
+    }
+
+    if (this.options?.debug) {
+      url.searchParams.set("public", "true");
     }
 
     navigator.sendBeacon(

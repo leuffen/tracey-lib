@@ -48,6 +48,7 @@ functions.http("eventsIngress", (req, res) => {
         .replaceAll(".", "-");
       const fileName = `tracey${sessionId ? "-" + sessionId : ""}-${date}.json`;
       const file = bucket.file(fileName);
+
       const stream = file.createWriteStream({
         metadata: {
           contentType: "application/json",
@@ -69,7 +70,11 @@ functions.http("eventsIngress", (req, res) => {
         sessionId,
         headers: getHeaderValues(req),
       };
-      stream.end(JSON.stringify(data));
+      stream.end(JSON.stringify(data), async () => {
+        if (req.query.public === "true") {
+          await file.makePublic();
+        }
+      });
     } catch (err) {
       res.set("x-tracey-error", err.message);
       res.status(500).send();
@@ -93,6 +98,7 @@ function getSessionId(req) {
  */
 function getHeaderValues(req) {
   const headerNames = [
+    "Referer",
     "User-Agent",
     "Sec-Ch-Ua",
     "Sec-Ch-Ua-Mobile",
