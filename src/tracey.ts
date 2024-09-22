@@ -37,10 +37,6 @@ export class Tracey {
     this.dataTransferService.init();
   }
 
-  dump(): void {
-    console.log(this.events.map((e) => e.toSerializable()));
-  }
-
   private setupListeners() {
     merge(
       new MouseMoveEventProducer(this.logger, this.options).produce(),
