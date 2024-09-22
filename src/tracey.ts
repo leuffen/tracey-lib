@@ -1,7 +1,7 @@
-import { filter, from, interval, map, merge, switchMap, tap } from "rxjs";
-import { defaultDataTransferInterval } from "./config/defaults";
+import { merge, tap } from "rxjs";
 import { SharedOptions } from "./config/shared-options";
 import { TraceyOptions } from "./config/tracey-options";
+import { DataTransferService } from "./data-transfer/data-transfer-service";
 import { InitEvent } from "./events/init-event";
 import { TraceyEvent } from "./events/tracey-event";
 import { ClickEventProducer } from "./producers/click-event.producer";
@@ -18,12 +18,14 @@ export class Tracey {
   readonly ctorTime = performance.now();
   readonly events: TraceyEvent<unknown>[] = [];
 
+  private readonly dataTransferService = new DataTransferService(
+    this,
+    this.options,
+  );
   private readonly logger = new Logger(this.options);
   private readonly breakpointDeterminer = new BreakpointDeterminer(
     this.options,
   );
-
-  private lastSentEventIndex = 0;
 
   constructor(private readonly options: TraceyOptions & SharedOptions) {
     this.logger.debug("Instance created. Not yet initialized.");
@@ -32,38 +34,11 @@ export class Tracey {
   init(): void {
     this.storeInitEvent();
     this.setupListeners();
-    this.setupDataTransfer();
+    this.dataTransferService.init();
   }
 
   dump(): void {
     console.log(this.events.map((e) => e.toSerializable()));
-  }
-
-  private setupDataTransfer() {
-    if (!this.options.dataTransfer) {
-      return;
-    }
-
-    interval(
-      this.options?.dataTransfer?.interval ?? defaultDataTransferInterval,
-    )
-      .pipe(
-        filter(() => document.visibilityState === "visible"),
-        map(() => this.events.slice(this.lastSentEventIndex)),
-        filter((events) => events.length > 0),
-        tap((events) => {
-          this.lastSentEventIndex += events.length;
-        }),
-        switchMap((events) => {
-          const promise = fetch(this.options.dataTransfer!.endpoint, {
-            method: "POST",
-            body: JSON.stringify(events.map((e) => e.toSerializable())),
-          });
-
-          return from(promise);
-        }),
-      )
-      .subscribe();
   }
 
   private setupListeners() {
