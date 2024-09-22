@@ -1,3 +1,4 @@
+import { getTraceyName } from "../util/attributes";
 import { getHierarchySelector } from "../util/dom";
 import { EventType } from "./event-type";
 import { SerializedEvent } from "./serialized-event";
@@ -36,7 +37,7 @@ export class ClickEvent extends TraceyEvent<ClickEventData> {
           this.target instanceof HTMLElement
             ? {
                 selector: getHierarchySelector(this.target),
-                dataTraceyName: this.target.getAttribute("data-tracey-name"),
+                dataTraceyName: getTraceyName(this.target),
               }
             : undefined,
       },

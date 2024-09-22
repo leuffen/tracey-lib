@@ -58,10 +58,10 @@
 
     <script src="./src/index.ts" type="module"></script>
     <script type="module">
-      import { Tracey } from "./src";
+      import { ClickAnalysis, IntersectionAnalysis, Tracey } from "./src";
 
       const tracey = new Tracey({
-        debug: true,
+        debug: false,
         breakpoints: {
           base: 0,
           px300: 300,
@@ -77,10 +77,56 @@
       });
       tracey.init();
 
-      window.TRACEY_INSTANCE = tracey;
+      window.TRACEY = window.TRACEY || {};
+      window.TRACEY.instance = tracey;
+      window.TRACEY.analytics = window.TRACEY.analytics || {};
+      window.TRACEY.analytics.IntersectionAnalysis = IntersectionAnalysis;
+      window.TRACEY.analytics.ClickAnalysis = ClickAnalysis;
+
       console.log("");
-      console.log("Use window.TRACEY_INSTANCE to interact with Tracey");
+      console.log("Use window.TRACEY.instance to interact with Tracey");
+      console.log("Use window.TRACEY.analytics.* to create analysis classes");
       console.log("");
+
+      const options = {
+        debug: true,
+        visualize: {
+          enabled: true,
+          interval: 500,
+          position: "element",
+        },
+      };
+
+      const [h1IntersectionAnalysis] =
+        window.TRACEY.analytics.IntersectionAnalysis.create(
+          "h1",
+          window.TRACEY.instance,
+          options,
+        );
+      h1IntersectionAnalysis.start();
+
+      const h2IntersectionAnalyses =
+        window.TRACEY.analytics.IntersectionAnalysis.create(
+          "h2",
+          window.TRACEY.instance,
+          options,
+        );
+      h2IntersectionAnalyses.forEach((analysis) => analysis.start());
+
+      const clickAnalysis = new window.TRACEY.analytics.ClickAnalysis(
+        window.TRACEY.instance,
+        options,
+      );
+      clickAnalysis.start();
+
+      window.TRACEY.analytics.h1IntersectionAnalysis = h1IntersectionAnalysis;
+      window.TRACEY.analytics.h2IntersectionAnalyses = h2IntersectionAnalyses;
+      window.TRACEY.analytics.clickAnalysis = clickAnalysis;
+
+      console.log("");
+      console.log(
+        "Use window.TRACEY.analytics.* or window.TRACEY.instance.analyses to interact with the analysis instances",
+      );
     </script>
   </body>
 </html>
