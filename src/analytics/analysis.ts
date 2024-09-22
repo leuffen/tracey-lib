@@ -1,4 +1,5 @@
 import {
+  fromEvent,
   iif,
   interval,
   merge,
@@ -8,7 +9,10 @@ import {
   Subscription,
   tap,
 } from "rxjs";
-import { AnalysisOptions } from "../config/analysis-options";
+import {
+  AnalysisOptions,
+  VisualizerPosition,
+} from "../config/analysis-options";
 import { defaultVisualizerInterval } from "../config/defaults";
 import { SharedOptions } from "../config/shared-options";
 import { TraceyEvent } from "../events/tracey-event";
@@ -34,6 +38,7 @@ export abstract class Analysis<R extends AnalysisResult> {
   private visualizerStack?: ElementStatsVisualizerStack;
   private visualizer?: ElementStatsVisualizer;
   private visualizerSubscription?: Subscription;
+  private visualizerPositioningSubscription?: Subscription;
 
   protected readonly logger = new Logger(this.options, this.name);
   protected subscription?: Subscription;
@@ -49,6 +54,7 @@ export abstract class Analysis<R extends AnalysisResult> {
 
   protected constructor(
     protected readonly name: string,
+    protected readonly supportedPositions: VisualizerPosition[],
     protected readonly tracey: Tracey,
     protected readonly options?: SharedOptions & AnalysisOptions,
   ) {
@@ -81,8 +87,7 @@ export abstract class Analysis<R extends AnalysisResult> {
     if (this.shouldVisualize) {
       this.setupVisualizerStack();
       this.visualizer = this.setupVisualizer();
-
-      this.visualizerStack!.addVisualizer(this.visualizer);
+      this.setupVisualizerPositioning();
 
       this.visualizerSubscription = merge(
         stream$,
@@ -119,6 +124,7 @@ export abstract class Analysis<R extends AnalysisResult> {
     this.endTime = performance.now();
     this.subscription?.unsubscribe();
     this.visualizerSubscription?.unsubscribe();
+    this.visualizerPositioningSubscription?.unsubscribe();
     return this.getResult();
   }
 
@@ -136,6 +142,25 @@ export abstract class Analysis<R extends AnalysisResult> {
     }
 
     return this.options?.visualize?.interval ?? defaultVisualizerInterval;
+  }
+
+  private get visualizerPosition(): VisualizerPosition {
+    if (typeof this.options?.visualize === "boolean") {
+      return VisualizerPosition.Global;
+    }
+
+    const position =
+      this.options?.visualize?.position ?? VisualizerPosition.Global;
+    return this.supportedPositions.includes(position)
+      ? position
+      : VisualizerPosition.Global;
+  }
+
+  protected getObservedElement(): Element {
+    throw new TraceyError(
+      TraceyErrorCode.NOT_IMPLEMENTED,
+      `Configuration of this ${this.name} led to getObservedElement() being called, but this method is not implemented. Make sure the concrete analysis class implements this method.`,
+    );
   }
 
   protected setupVisualizer(): ElementStatsVisualizer {
@@ -161,5 +186,49 @@ export abstract class Analysis<R extends AnalysisResult> {
     const stack = document.createElement(tag) as ElementStatsVisualizerStack;
     document.body.appendChild(stack);
     this.visualizerStack = stack;
+  }
+
+  private setupVisualizerPositioning(): void {
+    if (!this.visualizer) {
+      throw new Error(
+        "Visualizer not setup! This method should only be called after the visualizer has been created.",
+      );
+    }
+
+    switch (this.visualizerPosition) {
+      case VisualizerPosition.Global:
+        this.visualizerStack!.addVisualizer(this.visualizer);
+        break;
+      case VisualizerPosition.Element:
+        const el = this.getObservedElement();
+        if (!el) {
+          throw new TraceyError(
+            TraceyErrorCode.MISSING_OBSERVED_ELEMENT,
+            "getObservedElement() must return an element!",
+          );
+        }
+        this.visualizer.style.position = "absolute";
+
+        this.visualizerPositioningSubscription = merge(
+          fromEvent(window, "scroll"),
+          fromEvent(window, "resize"),
+        )
+          .pipe(
+            tap(() => {
+              const rect = el.getBoundingClientRect();
+              this.visualizer!.style.top = `${rect.top + window.scrollY}px`;
+              this.visualizer!.style.left = `${rect.left + window.scrollX}px`;
+            }),
+          )
+          .subscribe();
+
+        document.body.appendChild(this.visualizer);
+        break;
+      default:
+        throw new TraceyError(
+          TraceyErrorCode.INVALID_CONFIGURATION,
+          `Visualizer position ${this.visualizerPosition} is not supported.`,
+        );
+    }
   }
 }

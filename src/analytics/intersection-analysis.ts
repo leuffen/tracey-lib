@@ -1,4 +1,5 @@
 import { filter, Observable, tap } from "rxjs";
+import { VisualizerPosition } from "../config/analysis-options";
 import { SharedOptions } from "../config/shared-options";
 import { IntersectionEvent } from "../events/intersection-event";
 import { Tracey } from "../tracey";
@@ -57,7 +58,16 @@ export class IntersectionAnalysis extends Analysis<IntersectionAnalysisResult> {
       );
     }
 
-    super("IntersectionAnalysis", tracey, options);
+    super(
+      "IntersectionAnalysis",
+      [VisualizerPosition.Global, VisualizerPosition.Element],
+      tracey,
+      options,
+    );
+  }
+
+  protected override getObservedElement(): Element {
+    return this.element;
   }
 
   protected override observe(

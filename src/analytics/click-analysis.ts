@@ -1,4 +1,5 @@
 import { filter, Observable, tap } from "rxjs";
+import { VisualizerPosition } from "../config/analysis-options";
 import { SharedOptions } from "../config/shared-options";
 import { ClickEvent } from "../events/click-event";
 import { Tracey } from "../tracey";
@@ -16,7 +17,7 @@ export class ClickAnalysis extends Analysis<ClickAnalysisResult> {
   private targetHits = new Map<Element, number>();
 
   constructor(tracey: Tracey, options?: SharedOptions) {
-    super("ClickAnalysis", tracey, options);
+    super("ClickAnalysis", [VisualizerPosition.Global], tracey, options);
   }
 
   protected override observe(

@@ -1,3 +1,8 @@
+export enum VisualizerPosition {
+  Global = "global",
+  Element = "element",
+}
+
 export interface AnalysisOptions {
   /**
    * If set to `true`, an `element-stats-visualizer` will be rendered for this analysis.
@@ -10,5 +15,6 @@ export interface AnalysisOptions {
          * Set to `0` to disable the interval.
          */
         interval?: number;
+        position?: VisualizerPosition;
       };
 }

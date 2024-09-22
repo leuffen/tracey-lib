@@ -74,7 +74,8 @@ export class ElementStatsVisualizer extends HTMLElement {
           position: static;
           display: block;
           
-          opacity: .4;
+          opacity: .2;
+          background: white;
           line-height: 1;
           font-size: 1rem;
           
