@@ -42,5 +42,9 @@ export interface TraceyOptions {
      * @default `defaultDataTransferInterval`
      */
     interval?: number;
+    /**
+     * @default `defaultDataTransferEventCount`
+     */
+    minEventCount?: number;
   };
 }

@@ -1,5 +1,8 @@
 import { filter, fromEvent, interval, map, tap } from "rxjs";
-import { defaultDataTransferInterval } from "../config/defaults";
+import {
+  defaultDataTransferEventCount,
+  defaultDataTransferInterval,
+} from "../config/defaults";
 import { TraceyOptions } from "../config/tracey-options";
 import { TraceyEvent } from "../events/tracey-event";
 import { UnloadEvent } from "../events/unload-event";
@@ -11,7 +14,18 @@ export class DataTransferService {
   constructor(
     private readonly tracey: Tracey,
     private readonly options: TraceyOptions,
-  ) {}
+  ) {
+    if (this.options?.dataTransfer?.minEventCount) {
+      if (
+        !Number.isInteger(this.options.dataTransfer.minEventCount) ||
+        this.options.dataTransfer.minEventCount < 0
+      ) {
+        throw new Error(
+          "dataTransfer.minEventCount must be a positive integer",
+        );
+      }
+    }
+  }
 
   init() {
     if (!this.options.dataTransfer) {
@@ -20,7 +34,10 @@ export class DataTransferService {
 
     fromEvent(window, "beforeunload")
       .pipe(
-        map(() => [...this.getNextEventsForDataTransfer(), new UnloadEvent()]),
+        map(() => [
+          ...this.getNextEventsForDataTransfer(true),
+          new UnloadEvent(),
+        ]),
         tap((events) => this.sendEvents(events)),
       )
       .subscribe();
@@ -37,8 +54,18 @@ export class DataTransferService {
       .subscribe();
   }
 
-  private getNextEventsForDataTransfer() {
+  private get minEventsCount(): number {
+    return (
+      this.options?.dataTransfer?.minEventCount ?? defaultDataTransferEventCount
+    );
+  }
+
+  private getNextEventsForDataTransfer(force = false) {
     const events = this.tracey.events.slice(this.lastSentEventIndex);
+    if (!force && events.length < this.minEventsCount) {
+      return [];
+    }
+
     this.lastSentEventIndex += events.length;
 
     return events;
