@@ -42,4 +42,21 @@ export class IntersectionEvent extends TraceyEvent<IntersectionEventData> {
       },
     };
   }
+
+  deserialize(
+    event: SerializedEvent<IntersectionEventData>,
+  ): IntersectionEvent {
+    let element: Element | null = null;
+    if (event.data.target?.dataTraceyName) {
+      element = document.querySelector(
+        `[data-tracey-name="${event.data.target.dataTraceyName}"]`,
+      );
+    }
+    return new IntersectionEvent(
+      event.data.selector,
+      event.data.intersectionRatio,
+      event.data.isVisible,
+      element,
+    );
+  }
 }

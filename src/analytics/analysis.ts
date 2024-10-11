@@ -1,5 +1,4 @@
 import {
-  fromEvent,
   iif,
   interval,
   merge,
@@ -164,8 +163,7 @@ export abstract class Analysis<R extends AnalysisResult> {
   }
 
   protected setupVisualizer(): ElementStatsVisualizer {
-    const tag = ElementStatsVisualizer.define();
-    const el = document.createElement(tag) as ElementStatsVisualizer;
+    const el = ElementStatsVisualizer.defineAndCreate();
     el.setAttribute(TraceyAttributeNames.DATA_LABEL, this.name);
 
     return el;
@@ -207,22 +205,9 @@ export abstract class Analysis<R extends AnalysisResult> {
             "getObservedElement() must return an element!",
           );
         }
-        this.visualizer.style.position = "absolute";
 
-        this.visualizerPositioningSubscription = merge(
-          fromEvent(window, "scroll"),
-          fromEvent(window, "resize"),
-        )
-          .pipe(
-            tap(() => {
-              const rect = el.getBoundingClientRect();
-              this.visualizer!.style.top = `${rect.top + window.scrollY}px`;
-              this.visualizer!.style.left = `${rect.left + window.scrollX}px`;
-            }),
-          )
-          .subscribe();
-
-        document.body.appendChild(this.visualizer);
+        this.visualizerPositioningSubscription =
+          this.visualizer.attachToElement(el);
         break;
       default:
         throw new TraceyError(

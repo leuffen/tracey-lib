@@ -1,4 +1,4 @@
 export enum Modes {
-  CAPTURE,
-  REPLAY,
+  CAPTURE = "capture",
+  VISUALIZE = "visualize",
 }

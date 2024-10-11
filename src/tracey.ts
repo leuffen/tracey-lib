@@ -18,8 +18,10 @@ import { TraceyError, TraceyErrorCode } from "./util/error";
 import { Logger } from "./util/logger";
 import { Modes } from "./util/modes";
 import { QueryParams } from "./util/query-params";
+import { visualizeEvents } from "./visualization/visualize-events";
 
 export class Tracey {
+  readonly mode: Modes = Modes.CAPTURE;
   readonly visitId = this.options?.visitId?.disabled
     ? undefined
     : window.crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
@@ -27,8 +29,6 @@ export class Tracey {
   eventStream$?: Observable<TraceyEvent<unknown>>;
   readonly events: TraceyEvent<unknown>[] = [];
   readonly analyses: Analysis<any>[] = [];
-
-  mode = Modes.CAPTURE;
 
   private readonly dataTransferService = new DataTransferService(
     this,
@@ -40,21 +40,23 @@ export class Tracey {
   );
 
   constructor(private readonly options: TraceyOptions & SharedOptions) {
-    this.logger.debug("Instance created. Not yet initialized.");
+    const url = new URL(window.location.href);
+    if (url.searchParams.has(QueryParams.REPLAY_VISIT_ID)) {
+      this.mode = Modes.VISUALIZE;
+    }
+
+    this.logger.debug(
+      `Instance created in ${this.mode} mode. Not yet initialized.`,
+    );
   }
 
   init(): void {
-    const url = new URL(window.location.href);
-    if (url.searchParams.has(QueryParams.REPLAY_VISIT_ID)) {
-      this.mode = Modes.REPLAY;
-    }
-
     switch (this.mode) {
       case Modes.CAPTURE:
         this.initCaptureMode();
         break;
-      case Modes.REPLAY:
-        this.initReplayMode();
+      case Modes.VISUALIZE:
+        this.initVisualizeMode();
         break;
       default:
         throw new TraceyError(
@@ -106,20 +108,20 @@ export class Tracey {
     });
   }
 
-  private async initReplayMode() {
-    this.assertMode(Modes.REPLAY);
+  private async initVisualizeMode() {
+    this.assertMode(Modes.VISUALIZE);
     const url = new URL(window.location.href);
     const visitId = url.searchParams.get(QueryParams.REPLAY_VISIT_ID);
 
     if (!visitId) {
       throw new TraceyError(
         TraceyErrorCode.INVALID_CONFIGURATION,
-        `Replay mode started, but ${QueryParams.REPLAY_VISIT_ID} query param is missing`,
+        `${this.mode} mode started, but ${QueryParams.REPLAY_VISIT_ID} query param is missing`,
       );
     }
 
     const events = await downloadTrace(visitId, this.options);
-    console.log(events);
+    visualizeEvents(events);
   }
 
   private initCaptureMode() {

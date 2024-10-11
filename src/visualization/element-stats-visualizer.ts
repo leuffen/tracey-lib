@@ -1,3 +1,4 @@
+import { fromEvent, merge, Subscription, tap } from "rxjs";
 import { getTraceyName, TraceyAttributeNames } from "../util/attributes";
 import { getHierarchySelector } from "../util/dom";
 import { KeyValuePair } from "../util/key-value-pair";
@@ -12,6 +13,11 @@ export class ElementStatsVisualizer extends HTMLElement {
     }
 
     return tag;
+  }
+
+  static defineAndCreate(): ElementStatsVisualizer {
+    const tag = ElementStatsVisualizer.define();
+    return document.createElement(tag) as ElementStatsVisualizer;
   }
 
   private observedElement?: Element;
@@ -43,6 +49,21 @@ export class ElementStatsVisualizer extends HTMLElement {
     if (this.observedElementObserver) {
       this.observedElementObserver.disconnect();
     }
+  }
+
+  attachToElement(element: Element): Subscription {
+    this.style.position = "absolute";
+    document.body.appendChild(this);
+
+    return merge(fromEvent(window, "scroll"), fromEvent(window, "resize"))
+      .pipe(
+        tap(() => {
+          const rect = element.getBoundingClientRect();
+          this.style.top = `${rect.top + window.scrollY}px`;
+          this.style.left = `${rect.left + window.scrollX}px`;
+        }),
+      )
+      .subscribe();
   }
 
   private setupObservedElement(): void {
