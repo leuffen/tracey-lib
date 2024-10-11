@@ -23,13 +23,12 @@ export function visualizeEvents(events: AnySerializedEvent[]): void {
   } = Object.groupBy(intersectionEvents, (e) => e.data.target?.dataTraceyName);
 
   for (const name in intersectionsByElement) {
-    intersectionsByElement[name].push(unloadEvent);
-    const result = IntersectionAnalysis.fromEvents(
-      intersectionsByElement[name],
-    );
-
     const el = getElementByTraceyName(name);
     if (el instanceof HTMLElement) {
+      intersectionsByElement[name].push(unloadEvent);
+      const result = IntersectionAnalysis.fromEvents(
+        intersectionsByElement[name],
+      );
       IntersectionAnalysis.createStaticVisualizer(el, result);
     }
   }
