@@ -41,12 +41,12 @@ functions.http("eventsIngress", (req, res) => {
         return;
       }
 
-      const sessionId = getSessionId(req);
+      const visitId = getVisitId(req);
       const date = new Date()
         .toISOString()
         .replaceAll(":", "-")
         .replaceAll(".", "-");
-      const fileName = `tracey${sessionId ? "-" + sessionId : ""}-${date}.json`;
+      const fileName = `tracey${visitId ? "-" + visitId : ""}-${date}.json`;
       const file = bucket.file(fileName);
 
       const stream = file.createWriteStream({
@@ -67,7 +67,7 @@ functions.http("eventsIngress", (req, res) => {
 
       const data = {
         events,
-        sessionId,
+        visitId,
         headers: getHeaderValues(req),
       };
       stream.end(JSON.stringify(data), async () => {
@@ -88,8 +88,8 @@ functions.http("eventsIngress", (req, res) => {
  * @param {Request} req
  * @return {string|undefined}
  */
-function getSessionId(req) {
-  return req.query.s || undefined;
+function getVisitId(req) {
+  return req.query.vid || undefined;
 }
 
 /**
