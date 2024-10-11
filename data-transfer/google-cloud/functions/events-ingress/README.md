@@ -15,3 +15,11 @@ gcloud functions deploy eventsIngress \
   --set-env-vars BUCKET_NAME=GOOGLE_CLOUD_BUCKET_NAME \
   --region europe-west3
 ```
+
+# Local Development
+
+```sh
+BUCKET_NAME=bucket_name \
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json \
+npm start
+```

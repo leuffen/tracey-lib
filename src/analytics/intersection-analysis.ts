@@ -1,11 +1,17 @@
 import { filter, Observable, tap } from "rxjs";
 import { VisualizerPosition } from "../config/analysis-options";
 import { SharedOptions } from "../config/shared-options";
-import { IntersectionEvent } from "../events/intersection-event";
+import { EventType } from "../events/event-type";
+import {
+  IntersectionEvent,
+  IntersectionEventData,
+} from "../events/intersection-event";
+import { SerializedEvent } from "../events/serialized-event";
+import { UnloadEventData } from "../events/unload-event";
 import { Tracey } from "../tracey";
 import { TraceyAttributeNames } from "../util/attributes";
 import { KeyValuePair } from "../util/key-value-pair";
-import { TimeSpan } from "../util/time-span";
+import { getDuration, TimeSpan } from "../util/time-span";
 import { ElementStatsVisualizer } from "../visualization/element-stats-visualizer";
 import { Analysis, AnalysisResult } from "./analysis";
 
@@ -23,6 +29,95 @@ export class IntersectionAnalysis extends Analysis<IntersectionAnalysisResult> {
   private enterCount = 0;
   private exitCount = 0;
   private visibleTimes: TimeSpan[] = [];
+
+  private static resultToVisualizerData(
+    result: IntersectionAnalysisResult,
+  ): KeyValuePair[] {
+    return [
+      { key: "Enter count", value: result.enterCount },
+      { key: "Exit count", value: result.exitCount },
+      { key: "Visible times", value: result.visibleTimes.length },
+      { key: "Total visible time", value: result.totalVisibleTime + "ms" },
+    ];
+  }
+
+  static createStaticVisualizer(
+    element: HTMLElement,
+    result: IntersectionAnalysisResult,
+  ) {
+    const visualizer = ElementStatsVisualizer.defineAndCreate();
+    visualizer.data = IntersectionAnalysis.resultToVisualizerData(result);
+    visualizer.attachToElement(element);
+  }
+
+  static fromEvents(
+    events: SerializedEvent<IntersectionEventData | UnloadEventData>[],
+  ): IntersectionAnalysisResult {
+    const first = events[0];
+    const last = events[events.length - 1];
+
+    if (last.type !== EventType.UNLOAD) {
+      throw new Error(
+        `The last event in the provided list must be an ${EventType.UNLOAD} event.`,
+      );
+    }
+
+    let isVisible = false;
+    let enterCount = 0;
+    let exitCount = 0;
+    const visibleTimes: TimeSpan[] = [];
+
+    function visibilityStarted(e: SerializedEvent<any>): void {
+      isVisible = true;
+      enterCount++;
+
+      visibleTimes.push({
+        start: e.ts,
+      });
+    }
+
+    function visibilityEnded(e: SerializedEvent<any>): void {
+      isVisible = false;
+      exitCount++;
+
+      const currentVisibleTime = visibleTimes[visibleTimes.length - 1];
+      if (currentVisibleTime) {
+        currentVisibleTime.end = e.ts;
+        currentVisibleTime.duration =
+          currentVisibleTime.end - currentVisibleTime.start;
+      }
+    }
+
+    for (const event of events) {
+      if (event.type === EventType.UNLOAD) {
+        // The unload event is treated as a last "not-visible-anymore" event.
+        if (isVisible) {
+          visibilityEnded(event);
+        }
+        continue;
+      }
+
+      if (!isVisible && (event.data as IntersectionEventData).isVisible) {
+        visibilityStarted(event);
+      } else if (
+        isVisible &&
+        !(event.data as IntersectionEventData).isVisible
+      ) {
+        visibilityEnded(event);
+      }
+    }
+
+    return {
+      timing: {
+        start: first.ts,
+        end: last.ts,
+      },
+      enterCount,
+      exitCount,
+      visibleTimes,
+      totalVisibleTime: getDuration(visibleTimes),
+    };
+  }
 
   static create(
     selector: string,
@@ -118,10 +213,7 @@ export class IntersectionAnalysis extends Analysis<IntersectionAnalysisResult> {
   }
 
   private get totalVisibleTime(): number {
-    return this.visibleTimes.reduce(
-      (acc, cur) => acc + (cur.duration ?? performance.now() - cur.start),
-      0,
-    );
+    return getDuration(this.visibleTimes);
   }
 
   protected override setupVisualizer(): ElementStatsVisualizer {
@@ -135,11 +227,6 @@ export class IntersectionAnalysis extends Analysis<IntersectionAnalysisResult> {
   }
 
   protected override getVisualizerData(): KeyValuePair[] {
-    return [
-      { key: "Enter count", value: this.enterCount },
-      { key: "Exit count", value: this.exitCount },
-      { key: "Visible times", value: this.visibleTimes.length },
-      { key: "Total visible time", value: this.totalVisibleTime + "ms" },
-    ];
+    return IntersectionAnalysis.resultToVisualizerData(this.getResult());
   }
 }

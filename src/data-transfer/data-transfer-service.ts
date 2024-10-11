@@ -8,6 +8,8 @@ import { TraceyOptions } from "../config/tracey-options";
 import { TraceyEvent } from "../events/tracey-event";
 import { UnloadEvent } from "../events/unload-event";
 import { Tracey } from "../tracey";
+import { Modes } from "../util/modes";
+import { DataTransferQueryParams } from "./query-params";
 
 export class DataTransferService {
   private lastSentEventIndex = 0;
@@ -29,7 +31,7 @@ export class DataTransferService {
   }
 
   init() {
-    if (!this.options.dataTransfer) {
+    if (!this.options.dataTransfer || this.tracey.mode !== Modes.CAPTURE) {
       return;
     }
 
@@ -76,11 +78,14 @@ export class DataTransferService {
     const url = new URL(this.options.dataTransfer!.endpoint);
 
     if (this.tracey.visitId) {
-      url.searchParams.set("vid", this.tracey.visitId);
+      url.searchParams.set(
+        DataTransferQueryParams.VISIT_ID,
+        this.tracey.visitId,
+      );
     }
 
     if (this.options?.debug) {
-      url.searchParams.set("public", "true");
+      url.searchParams.set(DataTransferQueryParams.PUBLIC, "true");
     }
 
     navigator.sendBeacon(
