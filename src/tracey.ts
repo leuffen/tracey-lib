@@ -3,6 +3,7 @@ import { Analysis } from "./analytics/analysis";
 import { SharedOptions } from "./config/shared-options";
 import { TraceyOptions } from "./config/tracey-options";
 import { DataTransferService } from "./data-transfer/data-transfer-service";
+import { downloadTrace } from "./data-transfer/download-trace";
 import { InitEvent } from "./events/init-event";
 import { TraceyEvent } from "./events/tracey-event";
 import { ClickEventProducer } from "./producers/click-event.producer";
@@ -15,6 +16,8 @@ import { VisibilityStateEventProducer } from "./producers/visibility-state-event
 import { BreakpointDeterminer } from "./util/breakpoints";
 import { TraceyError, TraceyErrorCode } from "./util/error";
 import { Logger } from "./util/logger";
+import { Modes } from "./util/modes";
+import { QueryParams } from "./util/query-params";
 
 export class Tracey {
   readonly visitId = this.options?.visitId?.disabled
@@ -24,6 +27,8 @@ export class Tracey {
   eventStream$?: Observable<TraceyEvent<unknown>>;
   readonly events: TraceyEvent<unknown>[] = [];
   readonly analyses: Analysis<any>[] = [];
+
+  mode = Modes.CAPTURE;
 
   private readonly dataTransferService = new DataTransferService(
     this,
@@ -39,9 +44,24 @@ export class Tracey {
   }
 
   init(): void {
-    this.storeInitEvent();
-    this.setupListeners();
-    this.dataTransferService.init();
+    const url = new URL(window.location.href);
+    if (url.searchParams.has(QueryParams.REPLAY_VISIT_ID)) {
+      this.mode = Modes.REPLAY;
+    }
+
+    switch (this.mode) {
+      case Modes.CAPTURE:
+        this.initCaptureMode();
+        break;
+      case Modes.REPLAY:
+        this.initReplayMode();
+        break;
+      default:
+        throw new TraceyError(
+          TraceyErrorCode.NOT_IMPLEMENTED,
+          `Mode ${this.mode} not implemented`,
+        );
+    }
   }
 
   /**
@@ -86,6 +106,29 @@ export class Tracey {
     });
   }
 
+  private async initReplayMode() {
+    this.assertMode(Modes.REPLAY);
+    const url = new URL(window.location.href);
+    const visitId = url.searchParams.get(QueryParams.REPLAY_VISIT_ID);
+
+    if (!visitId) {
+      throw new TraceyError(
+        TraceyErrorCode.INVALID_CONFIGURATION,
+        `Replay mode started, but ${QueryParams.REPLAY_VISIT_ID} query param is missing`,
+      );
+    }
+
+    const events = await downloadTrace(visitId, this.options);
+    console.log(events);
+  }
+
+  private initCaptureMode() {
+    this.assertMode(Modes.CAPTURE);
+    this.storeInitEvent();
+    this.setupListeners();
+    this.dataTransferService.init();
+  }
+
   private setupListeners() {
     this.eventStream$ = merge(
       new MouseMoveEventProducer(this.logger, this.options).produce(),
@@ -121,5 +164,14 @@ export class Tracey {
     this.events.push(initEvent);
 
     this.logger.debug("Tracey initialized. Saved Init Event");
+  }
+
+  private assertMode(mode: Modes): void {
+    if (this.mode !== mode) {
+      throw new TraceyError(
+        TraceyErrorCode.MODE_MISMATCH,
+        `Invalid mode. Expected ${mode}, got ${this.mode}`,
+      );
+    }
   }
 }

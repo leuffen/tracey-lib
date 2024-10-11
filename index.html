@@ -61,7 +61,7 @@
       import { ClickAnalysis, IntersectionAnalysis, Tracey } from "./src";
 
       const tracey = new Tracey({
-        debug: false,
+        debug: true,
         breakpoints: {
           base: 0,
           px300: 300,
@@ -103,7 +103,6 @@
           window.TRACEY.instance,
           options,
         );
-      h1IntersectionAnalysis.start();
 
       const h2IntersectionAnalyses =
         window.TRACEY.analytics.IntersectionAnalysis.create(
@@ -111,13 +110,13 @@
           window.TRACEY.instance,
           options,
         );
-      h2IntersectionAnalyses.forEach((analysis) => analysis.start());
 
       const clickAnalysis = new window.TRACEY.analytics.ClickAnalysis(
         window.TRACEY.instance,
         options,
       );
-      clickAnalysis.start();
+
+      // window.TRACEY.instance.startAnalyses();
 
       window.TRACEY.analytics.h1IntersectionAnalysis = h1IntersectionAnalysis;
       window.TRACEY.analytics.h2IntersectionAnalyses = h2IntersectionAnalyses;
