@@ -1,4 +1,5 @@
-import { merge, tap } from "rxjs";
+import { merge, Observable, tap } from "rxjs";
+import { Analysis } from "./analytics/analysis";
 import { SharedOptions } from "./config/shared-options";
 import { TraceyOptions } from "./config/tracey-options";
 import { DataTransferService } from "./data-transfer/data-transfer-service";
@@ -12,6 +13,7 @@ import { ScrollEndEventProducer } from "./producers/scroll-end-event.producer";
 import { ScrollEventProducer } from "./producers/scroll-event.producer";
 import { VisibilityStateEventProducer } from "./producers/visibility-state-event.producer";
 import { BreakpointDeterminer } from "./util/breakpoints";
+import { TraceyError, TraceyErrorCode } from "./util/error";
 import { Logger } from "./util/logger";
 
 export class Tracey {
@@ -19,7 +21,9 @@ export class Tracey {
     ? undefined
     : window.crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
   readonly ctorTime = performance.now();
+  eventStream$?: Observable<TraceyEvent<unknown>>;
   readonly events: TraceyEvent<unknown>[] = [];
+  readonly analyses: Analysis<any>[] = [];
 
   private readonly dataTransferService = new DataTransferService(
     this,
@@ -40,8 +44,50 @@ export class Tracey {
     this.dataTransferService.init();
   }
 
+  /**
+   * Starts all analysis instances that have not been started yet.
+   */
+  startAnalyses(): void {
+    this.analyses.forEach((a) => {
+      try {
+        a.start();
+      } catch (e) {
+        if (
+          e instanceof TraceyError &&
+          e.code === TraceyErrorCode.ANALYSIS_ALREADY_STARTED
+        ) {
+          // can be safely ignored
+          return;
+        }
+
+        throw e;
+      }
+    });
+  }
+
+  /**
+   * Stops all analysis instances that have not been stopped yet.
+   */
+  stopAnalyses(): any[] {
+    return this.analyses.map((a) => {
+      try {
+        return a.stop();
+      } catch (e) {
+        if (
+          e instanceof TraceyError &&
+          e.code === TraceyErrorCode.ANALYSIS_ALREADY_STOPPED
+        ) {
+          // can be safely ignored
+          return;
+        }
+
+        throw e;
+      }
+    });
+  }
+
   private setupListeners() {
-    merge(
+    this.eventStream$ = merge(
       new MouseMoveEventProducer(this.logger, this.options).produce(),
       new ClickEventProducer(this.logger, this.options).produce(),
       new ResizeEventProducer(
@@ -53,9 +99,9 @@ export class Tracey {
       new ScrollEndEventProducer(this.logger, this.options).produce(),
       new VisibilityStateEventProducer(this.logger, this.options).produce(),
       new IntersectionEventProducer(this.logger, this.options).produce(),
-    )
-      .pipe(tap((e) => this.events.push(e)))
-      .subscribe();
+    ).pipe(tap((e) => this.events.push(e)));
+
+    this.eventStream$.subscribe();
   }
 
   private storeInitEvent() {

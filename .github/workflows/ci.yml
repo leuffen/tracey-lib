@@ -21,4 +21,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: bun run build
+      - run: npm ci
+      - run: npm run build

@@ -3,10 +3,18 @@
   "version": "1.0.1",
   "description": "",
   "license": "proprietary",
+  "type": "module",
+  "main": "dist/tracey.cjs.js",
+  "module": "dist/tracey.esm.js",
+  "browser": "dist/tracey.js",
   "workspaces": [
     "workspaces/*"
   ],
   "devDependencies": {
+    "@rollup/plugin-commonjs": "26.0.1",
+    "@rollup/plugin-node-resolve": "15.2.3",
+    "@rollup/plugin-terser": "0.4.4",
+    "@rollup/plugin-typescript": "11.1.6",
     "@google-cloud/functions-framework": "3.4.2",
     "@google-cloud/storage": "7.13.0",
     "@types/node": "20.14.11",
@@ -14,12 +22,13 @@
     "lint-staged": "15.2.7",
     "prettier": "3.3.3",
     "prettier-plugin-organize-imports": "^4.0.0",
+    "rollup": "4.22.4",
     "typescript": "5.5.3",
     "vite": "5.3.4"
   },
   "scripts": {
     "start": "vite",
-    "build": "bun build ./src/index.ts --outdir dist --minify",
+    "build": "NODE_ENV=production rollup -c",
     "prepare": "husky"
   },
   "lint-staged": {
