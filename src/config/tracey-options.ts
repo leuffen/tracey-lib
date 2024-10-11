@@ -37,6 +37,9 @@ export interface TraceyOptions {
     };
   };
   dataTransfer?: {
+    /**
+     * URL to the `eventsIngress` cloud function.
+     */
     endpoint: string;
     /**
      * @default `defaultDataTransferInterval`
