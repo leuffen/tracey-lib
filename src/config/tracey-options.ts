@@ -36,4 +36,24 @@ export interface TraceyOptions {
       selectors: string[];
     };
   };
+  dataTransfer?: {
+    /**
+     * URL to the `eventsIngress` cloud function.
+     */
+    endpoint: string;
+    /**
+     * @default `defaultDataTransferInterval`
+     */
+    interval?: number;
+    /**
+     * @default `defaultDataTransferEventCount`
+     */
+    minEventCount?: number;
+  };
+  /**
+   * Settings for a random visit ID that will be sent with every event.
+   */
+  visitId: {
+    disabled?: boolean;
+  };
 }

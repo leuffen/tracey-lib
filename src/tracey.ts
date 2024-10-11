@@ -2,6 +2,7 @@ import { merge, Observable, tap } from "rxjs";
 import { Analysis } from "./analytics/analysis";
 import { SharedOptions } from "./config/shared-options";
 import { TraceyOptions } from "./config/tracey-options";
+import { DataTransferService } from "./data-transfer/data-transfer-service";
 import { InitEvent } from "./events/init-event";
 import { TraceyEvent } from "./events/tracey-event";
 import { ClickEventProducer } from "./producers/click-event.producer";
@@ -16,11 +17,18 @@ import { TraceyError, TraceyErrorCode } from "./util/error";
 import { Logger } from "./util/logger";
 
 export class Tracey {
+  readonly visitId = this.options?.visitId?.disabled
+    ? undefined
+    : window.crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
   readonly ctorTime = performance.now();
   eventStream$?: Observable<TraceyEvent<unknown>>;
   readonly events: TraceyEvent<unknown>[] = [];
   readonly analyses: Analysis<any>[] = [];
 
+  private readonly dataTransferService = new DataTransferService(
+    this,
+    this.options,
+  );
   private readonly logger = new Logger(this.options);
   private readonly breakpointDeterminer = new BreakpointDeterminer(
     this.options,
@@ -33,10 +41,7 @@ export class Tracey {
   init(): void {
     this.storeInitEvent();
     this.setupListeners();
-  }
-
-  dump(): void {
-    console.log(this.events.map((e) => e.toSerializable()));
+    this.dataTransferService.init();
   }
 
   /**

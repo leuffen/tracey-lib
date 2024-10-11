@@ -8,3 +8,4 @@ libs/
 /dist
 .keystore.yml
 demo/.local
+.env
