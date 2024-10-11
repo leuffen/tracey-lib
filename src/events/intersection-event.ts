@@ -1,5 +1,5 @@
 import { getTraceyName } from "../util/attributes";
-import { getHierarchySelector } from "../util/dom";
+import { getElementByTraceyName, getHierarchySelector } from "../util/dom";
 import { EventType } from "./event-type";
 import { SerializedEvent } from "./serialized-event";
 import { TraceyEvent } from "./tracey-event";
@@ -48,9 +48,7 @@ export class IntersectionEvent extends TraceyEvent<IntersectionEventData> {
   ): IntersectionEvent {
     let element: Element | null = null;
     if (event.data.target?.dataTraceyName) {
-      element = document.querySelector(
-        `[data-tracey-name="${event.data.target.dataTraceyName}"]`,
-      );
+      element = getElementByTraceyName(event.data.target.dataTraceyName);
     }
     return new IntersectionEvent(
       event.data.selector,

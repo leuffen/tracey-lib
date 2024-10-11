@@ -15,11 +15,11 @@ export interface SerializedEvent<T> {
 }
 
 export type AnySerializedEvent =
-  | SerializedEvent<IntersectionEventData>
-  | SerializedEvent<ClickEventData>
   | SerializedEvent<InitEventData>
-  | SerializedEvent<MouseMoveEventData>
-  | SerializedEvent<ResizeEventData>
-  | SerializedEvent<ScrollEventData>
   | SerializedEvent<UnloadEventData>
+  | SerializedEvent<ClickEventData>
+  | SerializedEvent<MouseMoveEventData>
+  | SerializedEvent<ScrollEventData>
+  | SerializedEvent<IntersectionEventData>
+  | SerializedEvent<ResizeEventData>
   | SerializedEvent<VisibilityStateEventData>;

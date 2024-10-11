@@ -6,6 +6,7 @@ import {
   SerializedEvent,
 } from "../events/serialized-event";
 import { UnloadEventData } from "../events/unload-event";
+import { getElementByTraceyName } from "../util/dom";
 
 export function visualizeEvents(events: AnySerializedEvent[]): void {
   const intersectionEvents = events.filter(
@@ -13,20 +14,21 @@ export function visualizeEvents(events: AnySerializedEvent[]): void {
       e.type === EventType.INTERSECTION &&
       !!(e.data as IntersectionEventData).target?.dataTraceyName,
   ) as SerializedEvent<IntersectionEventData>[];
+  const unloadEvent = events.find(
+    (e) => e.type === EventType.UNLOAD,
+  ) as SerializedEvent<UnloadEventData>;
 
   const intersectionsByElement: {
     [name: string]: SerializedEvent<IntersectionEventData | UnloadEventData>[];
   } = Object.groupBy(intersectionEvents, (e) => e.data.target?.dataTraceyName);
-  const unloadEvent = events.find(
-    (e) => e.type === EventType.UNLOAD,
-  ) as SerializedEvent<UnloadEventData>;
+
   for (const name in intersectionsByElement) {
     intersectionsByElement[name].push(unloadEvent);
     const result = IntersectionAnalysis.fromEvents(
       intersectionsByElement[name],
     );
 
-    const el = document.querySelector(`[data-tracey-name="${name}"]`);
+    const el = getElementByTraceyName(name);
     if (el instanceof HTMLElement) {
       IntersectionAnalysis.createStaticVisualizer(el, result);
     }

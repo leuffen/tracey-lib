@@ -1,3 +1,5 @@
+import { TraceyAttributeNames } from "./attributes";
+
 export function getHierarchySelector(element: Element | null): string {
   const parts: string[] = [];
 
@@ -11,4 +13,10 @@ export function getHierarchySelector(element: Element | null): string {
   }
 
   return parts.join(" > ");
+}
+
+export function getElementByTraceyName(name: string): Element | null {
+  return document.querySelector(
+    `[${TraceyAttributeNames.DATA_TRACEY_NAME}="${name}"]`,
+  );
 }
