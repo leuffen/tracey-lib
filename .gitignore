@@ -7,3 +7,5 @@ libs/
 /workspaces
 /dist
 .keystore.yml
+demo/.local
+.env
